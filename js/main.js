@@ -24,7 +24,7 @@ const VIS_WIDTH = FRAME_WIDTH - MARGINS.left - MARGINS.right
 
 d3.csv('data/company_data.csv').then((data) => {
 
-    // Stacked Bar
+    // Frame 1: Stacked Bar
 
     // logging the first 10 rows, as required
     console.log(data.slice(0,10));
@@ -61,4 +61,12 @@ d3.csv('data/company_data.csv').then((data) => {
         .style('text-anchor', 'end')
         .attr('font-size', '10px')
         .attr('transform', 'rotate(-45)')
+
+
+
+
+
+    // Frame 2: Time Series Line
+
+
 });
