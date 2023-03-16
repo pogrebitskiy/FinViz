@@ -15,6 +15,6 @@ h1 {
     flex-direction: row;
 }
 
-#column {
+.column {
     flex:50%;
 }
