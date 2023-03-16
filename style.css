@@ -5,3 +5,16 @@ body {
 h1 {
     text-align: center;
 }
+
+.center{
+    text-align: center;
+}
+
+.flex {
+    display: flex;
+    flex-direction: row;
+}
+
+#column {
+    flex:50%;
+}
