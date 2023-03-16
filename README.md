@@ -1,6 +1,6 @@
 # DS4200 Final Project
 
-Link to GitHub Pages: `[insert your hyperlink here](insert your hyperlink here)`
+Link to GitHub Pages: `[https://ds4200-s23-class.github.io/project-finance-viz/](https://ds4200-s23-class.github.io/project-finance-viz/)`
 
 Clone this repo and work locally. Be sure to push the final version of your code (and any significant updates along the way) before submitting. To work locally, you will need to set up a Python Simple Server. Instructions for this are included below.  
 
@@ -14,7 +14,7 @@ The purpose of this assignment is to practice the entire pipeline of developing 
 
 1. Resources to support this assignment are provided in the Resources section below.  
 
-1. Create a GitHub Page for your repo and add the link to your GitHub Page above where you see `[insert your hyperlink here](insert your hyperlink here)` (if you put the link inside of the `[]` and the `()` you will get a clickable hyperlink). 
+1. Create a GitHub Page for your repo and add the link to your GitHub Page above where you see `[https://ds4200-s23-class.github.io/project-finance-viz/](https://ds4200-s23-class.github.io/project-finance-viz/)` (if you put the link inside of the `[]` and the `()` you will get a clickable hyperlink). 
 
 1. The index.html file included in this repo outlines the major sections required for the website hosting your final project visualization tool. You may add additional styling, but do not delete any sections as we will check and grade all of them after your final submission at the end of the semester. You will not fill in all sections right away, each of the following project milestones will specify which sections you are expected to work on. 
 
