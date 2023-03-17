@@ -23,7 +23,7 @@ const VIS_WIDTH = FRAME_WIDTH - MARGINS.left - MARGINS.right
 
 
 
-d3.csv('data/company_data.csv').then((data) => {
+d3.csv('data/small_company_data.csv').then((data) => {
 
     // Function to parse date column
     const parseDate = d3.timeParse("%Y-%m-%d")
