@@ -95,7 +95,37 @@ d3.csv('data/company_data.csv').then((data) => {
 
 
     // Frame 2: Time Series Line
+    
+    const years = data.map(d => parseDate(d.datadate).getFullYear());
 
+    // creating scales
+    const X_SCALE2 = d3.scaleBand()
+    .domain(years)
+    .range([0, VIS_WIDTH])
+    .padding(PADDING);
 
+    // finding max asset total
+    const Y_MAX2 = d3.max(data, (d) => {
+        return Math.max(d.at)
+    });
+
+    // y scale needed
+    const Y_SCALE2 = d3.scaleLinear()
+    .domain([0, Y_MAX2])
+    .range([VIS_HEIGHT, 0]);
+
+    // add y axis
+    FRAME2.append('g')
+        .attr('transform', 'translate(' + MARGINS.top + ',' + MARGINS.left + ')')
+        .call(d3.axisLeft(Y_SCALE2).ticks(10))
+        .attr('font-size', '10px');
+
+    // add x axis
+    FRAME2.append('g')
+        .attr('transform', 'translate(' + MARGINS.left + ',' + (VIS_HEIGHT + MARGINS.top) + ')')
+        .call(d3.axisBottom(X_SCALE2).ticks(3))
+        .selectAll('text')
+        .style('text-anchor', 'end')
+        .attr('font-size', '10px')
 
 });
