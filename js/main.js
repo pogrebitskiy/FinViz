@@ -1,5 +1,5 @@
-const FRAME_HEIGHT = 500;
-const FRAME_WIDTH = 500;
+const FRAME_HEIGHT = 700;
+const FRAME_WIDTH = 700;
 const PADDING = 10;
 const MARGINS = {left: 75,
                 right: 75,
