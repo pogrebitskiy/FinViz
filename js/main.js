@@ -27,6 +27,7 @@ d3.csv('data/company_data.csv').then((data) => {
 
     // Function to parse date column
     const parseDate = d3.timeParse("%Y-%m-%d")
+    const formatYear = d3.timeFormat("%Y");
     // Frame 1: Stacked Bar
 
     // logging the first 10 rows, as required
@@ -35,7 +36,7 @@ d3.csv('data/company_data.csv').then((data) => {
     // Example on how to pull year
     console.log(parseDate('2010-09-30').getFullYear());
 
-    //console.log(data.columns.slice(1));
+    console.log(data.columns.slice(1));
 
     const PADDING = 0.25;
 
@@ -80,7 +81,7 @@ d3.csv('data/company_data.csv').then((data) => {
         .selectAll('text')
         .style('text-anchor', 'end')
         .attr('font-size', '10px')
-        .attr('transform', 'rotate(-45)')
+        .attr('transform', 'rotate(-45)');
 
     // x axis label
     FRAME1.append('text')
@@ -88,16 +89,42 @@ d3.csv('data/company_data.csv').then((data) => {
         .attr('y', FRAME_HEIGHT - 20)
         .style('text-anchor', 'middle')
         .text('Ticker')
-        .attr('font-size', '12px')
+        .attr('font-size', '12px');
 
+    const asset_subgroups = ['plot_act', 'plot_ppent', 'plot_ivaeq', 'plot_ivao', 'plot_intan', 'plot_ao'].keys();
 
+    const asset_color = d3.scaleOrdinal()
+                    .domain(asset_subgroups)
+                    .range(['#004c6d','#346888','#5886a5', '#7aa6c2', '#9dc6e0', '#c1e7ff']);
+    const asset_stack = d3.stack()
+                                .keys(asset_subgroups)
+                                (data);
+    
+    const bandwidth = 10;
 
+    // test stack
+    FRAME1.append("g")
+            .selectAll("g")
+            // Enter in the stack data
+            .data(asset_stack)
+            .enter().append("g")
+            .attr("fill", function(d) { return color(d.key); })
+            .selectAll("rect")
+            // enter a second time = loop subgroup per subgroup to add all rectangles
+            .data(function(d) { return d; })
+            .enter().append("rect")
+            .attr("x", function(d) { return X_SCALE(d.data.group); })
+            .attr("y", function(d) { return Y_SCALE(d[1]); })
+            .attr("height", function(d) { return Y_SCALE(d[0]) - Y_SCALE(d[1]); })
+            .attr("width",bandwidth)
 
 
     // Frame 2: Time Series Line
-    
+    console.log(data);
     const years = data.map(d => parseDate(d.datadate).getFullYear());
 
+    const groupedData = d3.group(data, d => d.tic);
+    
     // creating scales
     const X_SCALE2 = d3.scaleBand()
     .domain(years)
@@ -111,8 +138,8 @@ d3.csv('data/company_data.csv').then((data) => {
 
     // y scale needed
     const Y_SCALE2 = d3.scaleLinear()
-    .domain([0, Y_MAX2])
-    .range([VIS_HEIGHT, 0]);
+        .domain([0, Y_MAX2])
+        .range([VIS_HEIGHT, 0]);
 
     // add y axis
     FRAME2.append('g')
@@ -126,7 +153,8 @@ d3.csv('data/company_data.csv').then((data) => {
         .call(d3.axisBottom(X_SCALE2).ticks(3))
         .selectAll('text')
         .style('text-anchor', 'end')
-        .attr('font-size', '10px');
+        .attr('font-size', '10px')
+        .attr('transform', 'rotate(-45)');
 
     // y axis label
     FRAME2.append('text')
@@ -143,6 +171,7 @@ d3.csv('data/company_data.csv').then((data) => {
         .attr('y', FRAME_HEIGHT - 20)
         .style('text-anchor', 'middle')
         .text('Year')
-        .attr('font-size', '12px')
+        .attr('font-size', '12px');
+        
 
 });
