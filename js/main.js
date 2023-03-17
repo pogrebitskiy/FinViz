@@ -23,11 +23,10 @@ const VIS_WIDTH = FRAME_WIDTH - MARGINS.left - MARGINS.right
 
 
 
-d3.csv('data/small_company_data.csv').then((data) => {
+d3.csv('data/company_data.csv').then((data) => {
 
     // Function to parse date column
     const parseDate = d3.timeParse("%Y-%m-%d")
-
     // Frame 1: Stacked Bar
 
     // logging the first 10 rows, as required
@@ -36,11 +35,12 @@ d3.csv('data/small_company_data.csv').then((data) => {
     // Example on how to pull year
     console.log(parseDate('2010-09-30').getFullYear());
 
-    console.log(data.columns.slice(1))
+    //console.log(data.columns.slice(1));
 
     const PADDING = 0.25;
 
     const groups = data.map(d => d.tic);
+    console.log(groups);
 
     // creating scales
     const X_SCALE = d3.scaleBand()
@@ -126,6 +126,23 @@ d3.csv('data/small_company_data.csv').then((data) => {
         .call(d3.axisBottom(X_SCALE2).ticks(3))
         .selectAll('text')
         .style('text-anchor', 'end')
-        .attr('font-size', '10px')
+        .attr('font-size', '10px');
+
+    // y axis label
+    FRAME2.append('text')
+        .attr('y', 25)
+        .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
+        .style('text-anchor', 'middle')
+        .text('Amount in Thousands of Dollars')
+        .attr('font-size', '12px')
+        .attr('transform', 'rotate(-90)');
+
+    // x axis label
+    FRAME2.append('text')
+        .attr('x', VIS_WIDTH/2 + MARGINS.left)
+        .attr('y', FRAME_HEIGHT - 20)
+        .style('text-anchor', 'middle')
+        .text('Year')
+        .attr('font-size', '12px')
 
 });
