@@ -172,6 +172,20 @@ d3.csv('data/company_data.csv').then((data) => {
         .style('text-anchor', 'middle')
         .text('Year')
         .attr('font-size', '12px');
+
+    FRAME2.selectAll(".line")
+        .data(groupedData)
+        .enter()
+        .append("path")
+        .attr("class", "line")
+        .attr("d", d => {
+          let lineData = d3.line()
+            .x(d => X_SCALE2(formatYear(parseDate(d.datadate))))
+            .y(d => Y_SCALE2(d.aot));
+          return lineData(d[1]);
+        })
+        .attr("stroke", (d, i) => d3.schemeCategory10[i % 10])
+        .attr("fill", "none");
         
 
 });
