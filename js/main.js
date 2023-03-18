@@ -38,7 +38,39 @@ d3.csv('data/company_data.csv').then((data) => {
 
     console.log(data.columns.slice(1));
 
-    const PADDING = 0.25;
+    let all_tickers = Array.from(new Set(data.map(d => d.tic)));
+    console.log(all_tickers)
+
+
+
+    // Populate dropdown with year choices
+    let choose_years = new Set(data.map(d => d.fyear));
+    d3.select("#selectYear")
+      .selectAll("option")
+      .data([...choose_years])
+      .enter()
+      .append("option")
+      .text(d => d);
+
+
+    // Initialize first year to render site with
+    let cur_year = d3.select("#selectYear").node().value;
+
+    // Add event listener to plot, changes with dropdown changes
+    d3.select('#selectYear').on('change', updatePlot);
+
+
+    function updatePlot() {
+        cur_year = d3.select("#selectYear").node().value;
+
+        // Clear the frame of all bars
+        FRAME1.selectAll("rect").remove();
+
+        // Plots the new bars
+        plot_bars();
+    }
+
+    const PADDING = 0.12;
 
     const groups = data.map(d => d.tic);
     console.log(groups);
@@ -53,11 +85,12 @@ d3.csv('data/company_data.csv').then((data) => {
     const Y_MAX = d3.max(data, (d) => {
         return Math.max(d.at/d.at, d.lt/d.at, d.teq/d.at)
     });
+    console.log(Y_MAX);
 
     // y scale needed
     const Y_SCALE = d3.scaleLinear()
     .domain([0, Y_MAX])
-    .range([VIS_HEIGHT, 0]);
+    .range([VIS_HEIGHT, 0])
 
     // add y axis
     FRAME1.append('g')
@@ -70,7 +103,7 @@ d3.csv('data/company_data.csv').then((data) => {
         .attr('y', 25)
         .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
         .style('text-anchor', 'middle')
-        .text('Percentage of Total Assets')
+        .text('Proportion of Total Assets')
         .attr('font-size', '12px')
         .attr('transform', 'rotate(-90)')
 
@@ -91,32 +124,115 @@ d3.csv('data/company_data.csv').then((data) => {
         .text('Ticker')
         .attr('font-size', '12px');
 
-    const asset_subgroups = ['plot_act', 'plot_ppent', 'plot_ivaeq', 'plot_ivao', 'plot_intan', 'plot_ao'].keys();
 
-    const asset_color = d3.scaleOrdinal()
-                    .domain(asset_subgroups)
-                    .range(['#004c6d','#346888','#5886a5', '#7aa6c2', '#9dc6e0', '#c1e7ff']);
-    const asset_stack = d3.stack()
-                                .keys(asset_subgroups)
-                                (data);
-    
-    const bandwidth = 10;
 
-    // test stack
-    FRAME1.append("g")
-            .selectAll("g")
-            // Enter in the stack data
+    // Create svg container for each type of bar: asset, liab, eq
+    g_assets = FRAME1.append('g').classed('asset-bars', true);
+    g_liab = FRAME1.append('g').classed('liability-bars', true);
+    g_eq = FRAME1.append('g').classed('equity-bars', true);
+
+    // Initialize viz before anything selected
+    updatePlot();
+
+    function plot_bars() {
+
+        // Specify desired columns
+        const asset_subgroups = ['plot_act', 'plot_ppent', 'plot_ivaeq', 'plot_ivao', 'plot_intan', 'plot_ao'];
+        const liab_subgroups = ['plot_lct', 'plot_txditc', 'plot_lo', 'plot_dltt']
+        const eq_subgroups = ['plot_ceq', 'plot_pstk', 'plot_mibn']
+
+        // Create color map and bar stack series
+        const asset_color = d3.scaleOrdinal()
+            .domain(asset_subgroups)
+            .range(['#004c6d', '#346888', '#5886a5', '#7aa6c2', '#9dc6e0', '#c1e7ff']);
+        const asset_stack = d3.stack()
+            .keys(asset_subgroups)
+            (data.filter(d => d.fyear === cur_year));
+
+        // Create color map and bar stack series
+        const liab_color = d3.scaleOrdinal()
+            .domain(liab_subgroups)
+            .range(['#5d0103', '#971c1f', '#cc3334', '#ff4949']);
+        const liab_stack = d3.stack()
+            .keys(liab_subgroups)
+            (data.filter(d => d.fyear === cur_year));
+
+        // Create color map and bar stack series
+        const eq_color = d3.scaleOrdinal()
+            .domain(eq_subgroups)
+            .range(['#005a13', '#37ad14', '#65ff00']);
+        const eq_stack = d3.stack()
+            .keys(eq_subgroups)
+            (data.filter(d => d.fyear === cur_year));
+
+
+        const bandwidth = 10;
+
+        // Fill svg container with individual svgs
+        let asset_bars = g_assets
+            .selectAll('g.series')
             .data(asset_stack)
-            .enter().append("g")
-            .attr("fill", function(d) { return color(d.key); })
-            .selectAll("rect")
-            // enter a second time = loop subgroup per subgroup to add all rectangles
-            .data(function(d) { return d; })
-            .enter().append("rect")
-            .attr("x", function(d) { return X_SCALE(d.data.group); })
-            .attr("y", function(d) { return Y_SCALE(d[1]); })
-            .attr("height", function(d) { return Y_SCALE(d[0]) - Y_SCALE(d[1]); })
-            .attr("width",bandwidth)
+            .join('g')
+            .classed('series', true)
+            .style('fill', (d) => asset_color(d.key))
+
+        asset_bars.selectAll('rect')
+            .data((d) => d)
+            .join('rect')
+            .attr('width', bandwidth)
+            .attr('x', (d) => X_SCALE(d.data.tic) + MARGINS.right)
+            .attr('height', (d) => Y_SCALE(d[0]) - Y_SCALE(d[1]))
+            .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom);
+
+        let liab_bars = g_liab
+            .selectAll('g.series')
+            .data(liab_stack)
+            .join('g')
+            .classed('series', true)
+            .style('fill', (d) => liab_color(d.key))
+
+        liab_bars.selectAll('rect')
+            .data((d) => d)
+            .join('rect')
+            .attr('width', bandwidth)
+            .attr('x', (d) => X_SCALE(d.data.tic) + bandwidth + MARGINS.right)
+            .attr('height', (d) => Y_SCALE(d[0]) - Y_SCALE(d[1]))
+            .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom);
+
+        let eq_bars = g_eq
+            .selectAll('g.series')
+            .data(eq_stack)
+            .join('g')
+            .classed('series', true)
+            .style('fill', (d) => eq_color(d.key))
+
+        eq_bars.selectAll('rect')
+            .data((d) => d)
+            .join('rect')
+            .attr('width', bandwidth)
+            .attr('x', (d) => X_SCALE(d.data.tic) + bandwidth * 2 + MARGINS.right)
+            .attr('height', (d) => Y_SCALE(d[0]) - Y_SCALE(d[1]))
+            .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom);
+
+    };
+
+
+    // // test stack
+    // FRAME1.append("g")
+    //         .selectAll("g")
+    //         // Enter in the stack data
+    //         .data(asset_stack)
+    //         .enter().append("g")
+    //         .attr()
+    //         .attr("fill", function(d) { return asset_color(d.key); })
+    //         .selectAll("rect")
+    //         // enter a second time = loop subgroup per subgroup to add all rectangles
+    //         .data(function(d) { return d; })
+    //         .enter().append("rect")
+    //         .attr("x", function(d) { return MARGINS.left + X_SCALE(d.data.tic); })
+    //         .attr("y", function(d) { return MARGINS.bottom + Y_SCALE(d[1]); })
+    //         .attr("height", function(d) {return Y_SCALE(d[0]) - Y_SCALE(d[1]); })
+    //         .attr("width",bandwidth)
 
 
     // Frame 2: Time Series Line
