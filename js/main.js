@@ -1,5 +1,5 @@
-const FRAME_HEIGHT = 700;
-const FRAME_WIDTH = 700;
+const FRAME_HEIGHT = 800;
+const FRAME_WIDTH = 800;
 const PADDING = 10;
 const MARGINS = {left: 75,
                 right: 75,
@@ -23,7 +23,7 @@ const VIS_WIDTH = FRAME_WIDTH - MARGINS.left - MARGINS.right
 
 
 
-d3.csv('data/company_data.csv').then((data) => {
+d3.csv('data/data.csv').then((data) => {
 
     // Function to parse date column
     const parseDate = d3.timeParse("%Y-%m-%d")
@@ -41,7 +41,22 @@ d3.csv('data/company_data.csv').then((data) => {
     let all_tickers = Array.from(new Set(data.map(d => d.tic)));
     console.log(all_tickers)
 
-
+    // will be used for mapping later
+    const DEFINITIONS = {
+        act: 'Total Current Assets',
+        ppent: 'Total Property, Plant, and Equipment',
+        intan: 'Total Intangible Assets',
+        ivaeq: 'Investments and Advances - Equity Method',
+        ivao: 'Investments and Advances - Other',
+        ao: 'Total Other Assets',
+        lct: 'Total Current Assets',
+        txditc: 'Deferred Taxes and Investment Tax Credit',
+        lo: 'Other Liabilities',
+        dltt: 'Total Long-Term Debt',
+        ceq: 'Total Common/Ordinary Equity',
+        pstk: 'Total Preferred/Preference Stock (Capital)',
+        mibn: 'Nonredeemable Noncontrolling Interest'
+    };
 
     // Populate dropdown with year choices
     let choose_years = new Set(data.map(d => d.fyear));
@@ -68,6 +83,7 @@ d3.csv('data/company_data.csv').then((data) => {
 
         // Plots the new bars
         plot_bars();
+        tooltips();
     }
 
     const PADDING = 0.12;
@@ -216,23 +232,58 @@ d3.csv('data/company_data.csv').then((data) => {
 
     };
 
+    function tooltips() {
+        // adding a tooltip for hover functionality
+        const TOOLTIP = d3.select("#vis1")
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltip")
+        .style("background-color", "white")
+        .style("border", "solid")
+        .style("border-width", "2px")
+        .style("border-radius", "5px")
+        .style("padding", "5px");
 
-    // // test stack
-    // FRAME1.append("g")
-    //         .selectAll("g")
-    //         // Enter in the stack data
-    //         .data(asset_stack)
-    //         .enter().append("g")
-    //         .attr()
-    //         .attr("fill", function(d) { return asset_color(d.key); })
-    //         .selectAll("rect")
-    //         // enter a second time = loop subgroup per subgroup to add all rectangles
-    //         .data(function(d) { return d; })
-    //         .enter().append("rect")
-    //         .attr("x", function(d) { return MARGINS.left + X_SCALE(d.data.tic); })
-    //         .attr("y", function(d) { return MARGINS.bottom + Y_SCALE(d[1]); })
-    //         .attr("height", function(d) {return Y_SCALE(d[0]) - Y_SCALE(d[1]); })
-    //         .attr("width",bandwidth)
+    // handling the mouse entering the space
+    function handleMouseover(event, d) {
+        TOOLTIP.style("opacity", 1);
+        TOOLTIP.transition()
+            .duration(200);
+        d3.select(this)
+        .style("stroke", "black")
+        //.style('stroke-width', 3)
+        .style("opacity", 1);
+    }
+
+    // handing a mouse movement
+    function handleMousemove(event, d) {
+        // will check the key where the val exists, but will have plot_ in front of it
+        // 1 shows up as .99999 so we rounded to 6 decimal points when checking
+        let key = Object.keys(d.data).find(k => d3.format(".6f")(parseFloat(d.data[k])) === d3.format(".6f")(d[1] - d[0]));
+        
+        let true_key = key.replace("plot_", "");
+
+        // showing the tooltip with proper information
+        TOOLTIP.html("Company: " + d.data.conm + "<br/>Account: " + DEFINITIONS[true_key] + "<br/>Value: " + d.data[true_key])
+        .style('left', (event.pageX + 10) + 'px')
+        .style('top', (event.pageY - 20) + 'px');
+    }
+
+    // handling the mouse exiting
+    function handleMouseleave(event, d) {
+        TOOLTIP.style("opacity", 0)
+        d3.select(this)
+            .style("stroke", "none")
+            //.style("opacity", 0.8)
+    }
+
+    // tooltip functionality on different situations
+    FRAME1.selectAll("rect")
+        .on("mouseover", handleMouseover)
+        .on("mousemove", handleMousemove)
+        .on("mouseleave", handleMouseleave);
+    }
+    
 
 
     // Frame 2: Time Series Line
