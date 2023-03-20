@@ -33,9 +33,6 @@ d3.csv('data/data.csv').then((data) => {
     // logging the first 10 rows, as required
     console.log(data.slice(0,10));
 
-    // Example on how to pull year
-    console.log(parseDate('2010-09-30').getFullYear());
-
     console.log(data.columns.slice(1));
 
     let all_tickers = Array.from(new Set(data.map(d => d.tic)));
@@ -105,8 +102,8 @@ d3.csv('data/data.csv').then((data) => {
 
     // y scale needed
     const Y_SCALE = d3.scaleLinear()
-    .domain([0, Y_MAX])
-    .range([VIS_HEIGHT, 0])
+        .domain([0, Y_MAX])
+        .range([VIS_HEIGHT, 0])
 
     // add y axis
     FRAME1.append('g')
@@ -265,8 +262,8 @@ d3.csv('data/data.csv').then((data) => {
 
         // showing the tooltip with proper information
         TOOLTIP.html("Company: " + d.data.conm + "<br/>Account: " + DEFINITIONS[true_key] + "<br/>Value: " + d.data[true_key])
-        .style('left', (event.pageX + 10) + 'px')
-        .style('top', (event.pageY - 20) + 'px');
+            .style("left", (d3.pointer(this)[0]) + "px")
+            .style("top", (d3.pointer(this)[1]) + "px");
     }
 
     // handling the mouse exiting
@@ -277,34 +274,42 @@ d3.csv('data/data.csv').then((data) => {
             //.style("opacity", 0.8)
     }
 
+    function handleMouseclick(event, d) {
+        updateLine(d.data.tic);
+    }
+
     // tooltip functionality on different situations
     FRAME1.selectAll("rect")
         .on("mouseover", handleMouseover)
         .on("mousemove", handleMousemove)
-        .on("mouseleave", handleMouseleave);
+        .on("mouseleave", handleMouseleave)
+        .on("click", handleMouseclick);
     }
     
 
 
     // Frame 2: Time Series Line
-    console.log(data);
-    const years = data.map(d => parseDate(d.datadate).getFullYear());
 
-    const groupedData = d3.group(data, d => d.tic);
+    // this is not working as expected, will hardcode years for now
+    const yearFormat = d3.timeFormat("%Y");
+    const years = Array.from(new Set(data.map(d => yearFormat(parseDate(d.datadate)))));
+    console.log(years);
     
+
     // creating scales
-    const X_SCALE2 = d3.scaleBand()
-    .domain(years)
-    .range([0, VIS_WIDTH])
-    .padding(PADDING);
+    let X_SCALE2 = d3.scaleBand()
+        // harcoded for testing
+        .domain([2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022])
+        .range([0, VIS_WIDTH]);
 
     // finding max asset total
-    const Y_MAX2 = d3.max(data, (d) => {
+    let Y_MAX2 = d3.max(data, (d) => {
         return Math.max(d.at)
     });
+    
 
     // y scale needed
-    const Y_SCALE2 = d3.scaleLinear()
+    let Y_SCALE2 = d3.scaleLinear()
         .domain([0, Y_MAX2])
         .range([VIS_HEIGHT, 0]);
 
@@ -340,19 +345,64 @@ d3.csv('data/data.csv').then((data) => {
         .text('Year')
         .attr('font-size', '12px');
 
-    FRAME2.selectAll(".line")
-        .data(groupedData)
-        .enter()
-        .append("path")
-        .attr("class", "line")
-        .attr("d", d => {
-          let lineData = d3.line()
-            .x(d => X_SCALE2(formatYear(parseDate(d.datadate))))
-            .y(d => Y_SCALE2(d.aot));
-          return lineData(d[1]);
-        })
-        .attr("stroke", (d, i) => d3.schemeCategory10[i % 10])
-        .attr("fill", "none");
+
+    function updateLine(tic) {    
+        cur_tic = tic
+
+        // Clear the frame of all lines
+        FRAME2.selectAll("circle").remove();
+
+        // get rid of all axis to recalc the y axis
+        FRAME2.selectAll("g").remove();
+
+        // Plots the new bars
+        plot_lines();
+        }
+    
+    function plot_lines() {
+        console.log('testing, current tic is ' + cur_tic);
+
+        let filteredData = data.filter(function(d) {
+            return d.tic === cur_tic;
+          });
         
+        Y_MAX2 = d3.max(filteredData, (d) => {
+            return Math.max(d.at)
+        });
+
+        Y_SCALE2 = d3.scaleLinear()
+            .domain([0, Y_MAX2])
+            .range([VIS_HEIGHT, 0]);
+
+        // add y axis
+        FRAME2.append('g')
+            .attr('transform', 'translate(' + MARGINS.top + ',' + MARGINS.left + ')')
+            .call(d3.axisLeft(Y_SCALE2).ticks(10))
+            .attr('font-size', '10px');
+
+        // add x axis
+        FRAME2.append('g')
+            .attr('transform', 'translate(' + MARGINS.left + ',' + (VIS_HEIGHT + MARGINS.top) + ')')
+            .call(d3.axisBottom(X_SCALE2).ticks(3))
+            .selectAll('text')
+            .style('text-anchor', 'end')
+            .attr('font-size', '10px')
+            .attr('transform', 'rotate(-45)');
+        
+        // add circles, doing scatter for now
+        FRAME2.selectAll(".circle")
+            .data(filteredData)
+            .enter()
+            .append("circle")
+            .attr("class", "circle")
+            .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
+            .attr("cy", d => Y_SCALE2(d.act))
+            .attr("r", 5)
+            .style("fill", "black");
+      
+        
+    }
+
+    updateLine('NFLX');
 
 });
