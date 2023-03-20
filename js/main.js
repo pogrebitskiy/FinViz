@@ -35,8 +35,6 @@ d3.csv('data/revdata.csv').then((data) => {
 
     console.log(data.columns.slice(1));
 
-    let all_tickers = Array.from(new Set(data.map(d => d.tic)));
-    console.log(all_tickers)
 
     // will be used for mapping later
     const DEFINITIONS = {
@@ -64,6 +62,19 @@ d3.csv('data/revdata.csv').then((data) => {
       .append("option")
       .text(d => d);
 
+    let all_tickers = Array.from(new Set(data.map(d => d.tic)));
+    d3.select('#selectCompanies')
+        .selectAll('label')
+        .data([...all_tickers])
+        .enter()
+        .append('label')
+        .html(d => d)
+        .append('input')
+            .attr('type', 'checkbox')
+            .attr('class', 'company_cb')
+            .attr('value', d => d)
+            .attr('checked', 'checked')
+
 
     // Initialize first year to render site with
     let cur_year = d3.select("#selectYear").node().value;
@@ -71,6 +82,7 @@ d3.csv('data/revdata.csv').then((data) => {
     // Add event listener to plot, changes with dropdown changes
     d3.select('#selectYear').on('change', updatePlot);
 
+    d3.select('#selectCompanies').on('change', updatePlot);
 
     function updatePlot() {
         cur_year = d3.select("#selectYear").node().value;
@@ -157,7 +169,7 @@ d3.csv('data/revdata.csv').then((data) => {
         // Create color map and bar stack series
         const asset_color = d3.scaleOrdinal()
             .domain(asset_subgroups)
-            .range(['#004c6d', '#346888', '#5886a5', '#7aa6c2', '#9dc6e0', '#c1e7ff']);
+            .range(['#00a9ff', '#51b5ff', '#84c8ff', '#b4e0ff', '#ceefff', '#ddf9ff']);
         const asset_stack = d3.stack()
             .keys(asset_subgroups)
             (data.filter(d => d.fyear === cur_year));
@@ -165,7 +177,7 @@ d3.csv('data/revdata.csv').then((data) => {
         // Create color map and bar stack series
         const liab_color = d3.scaleOrdinal()
             .domain(liab_subgroups)
-            .range(['#5d0103', '#971c1f', '#cc3334', '#ff4949']);
+            .range(['#ff0000', '#ff3921', '#ff6044', '#ff8870']);
         const liab_stack = d3.stack()
             .keys(liab_subgroups)
             (data.filter(d => d.fyear === cur_year));
@@ -173,7 +185,7 @@ d3.csv('data/revdata.csv').then((data) => {
         // Create color map and bar stack series
         const eq_color = d3.scaleOrdinal()
             .domain(eq_subgroups)
-            .range(['#005a13', '#37ad14', '#65ff00']);
+            .range(['#54ff00', '#afff8b', '#d7ffc2']);
         const eq_stack = d3.stack()
             .keys(eq_subgroups)
             (data.filter(d => d.fyear === cur_year));
@@ -187,7 +199,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .data(asset_stack)
             .join('g')
             .classed('series', true)
-            .style('fill', (d) => asset_color(d.key))
+            .style('fill', (d) => asset_color(d.key));
 
         asset_bars.selectAll('rect')
             .data((d) => d)
@@ -195,7 +207,8 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr('width', bandwidth)
             .attr('x', (d) => X_SCALE(d.data.tic) + MARGINS.right)
             .attr('height', (d) => Y_SCALE(d[0]) - Y_SCALE(d[1]))
-            .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom);
+            .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom)
+            .style("opacity", 0.4);
 
         let liab_bars = g_liab
             .selectAll('g.series')
@@ -210,7 +223,8 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr('width', bandwidth)
             .attr('x', (d) => X_SCALE(d.data.tic) + bandwidth + MARGINS.right)
             .attr('height', (d) => Y_SCALE(d[0]) - Y_SCALE(d[1]))
-            .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom);
+            .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom)
+            .style("opacity", 0.4);
 
         let eq_bars = g_eq
             .selectAll('g.series')
@@ -225,7 +239,8 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr('width', bandwidth)
             .attr('x', (d) => X_SCALE(d.data.tic) + bandwidth * 2 + MARGINS.right)
             .attr('height', (d) => Y_SCALE(d[0]) - Y_SCALE(d[1]))
-            .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom);
+            .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom)
+            .style("opacity", 0.4);
 
     };
 
@@ -244,10 +259,10 @@ d3.csv('data/revdata.csv').then((data) => {
     // handling the mouse entering the space
     function handleMouseover(event, d) {
         TOOLTIP.style("opacity", 1);
-        TOOLTIP.transition()
-            .duration(200);
+        // TOOLTIP.transition()
+        //     .duration(200);
         d3.select(this)
-        .style("stroke", "black")
+        //.style("stroke", "black")
         //.style('stroke-width', 3)
         .style("opacity", 1);
     }
@@ -271,7 +286,7 @@ d3.csv('data/revdata.csv').then((data) => {
         TOOLTIP.style("opacity", 0)
         d3.select(this)
             .style("stroke", "none")
-            //.style("opacity", 0.8)
+            .style("opacity", 0.4)
     }
 
     function handleMouseclick(event, d) {
