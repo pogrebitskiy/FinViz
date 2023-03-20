@@ -18,9 +18,3 @@ h1 {
 .column {
     flex:50%;
 }
-
-#tic-title {
-    /* AAPL is default */
-    text: 'AAPL Time Series'
-}
-

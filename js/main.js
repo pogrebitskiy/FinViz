@@ -1,5 +1,5 @@
-const FRAME_HEIGHT = 800;
-const FRAME_WIDTH = 800;
+const FRAME_HEIGHT = 750;
+const FRAME_WIDTH = 750;
 const PADDING = 10;
 const MARGINS = {left: 75,
                 right: 75,
@@ -277,7 +277,7 @@ d3.csv('data/revdata.csv').then((data) => {
     function handleMouseclick(event, d) {
         updateLine(d.data.tic);
         d3.select("#tic-title")
-            .text(d.data.tic + " Time Series");
+            .text(d.data.tic + " Time-Series Revenue");
     }
 
     // tooltip functionality on different situations
@@ -399,7 +399,29 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr("cy", d => Y_SCALE2(d.revt) + MARGINS.top)
             .attr("r", 5)
             .style("fill", "black");
+        
+        // harcoding for now
+        const keys = ['Total Revenue']
 
+        FRAME2.selectAll("mydots")
+            .data(keys)
+            .enter()
+            .append("circle")
+            .attr("cx", VIS_WIDTH - MARGINS.right)
+            .attr("cy", function(d,i){ return VIS_HEIGHT + i*25}) 
+            .attr("r", 5)
+            .style("fill", 'black');
+
+        FRAME2.selectAll("mylabels")
+            .data(keys)
+            .enter()
+            .append("text")
+            .attr("x", VIS_WIDTH - MARGINS.right + 20)
+            .attr("y", function(d,i){ return VIS_HEIGHT + i*25})
+            .style("fill", 'black')
+            .text(function(d){ return d})
+            .attr("text-anchor", "left")
+            .style("alignment-baseline", "middle");
         
       
         
@@ -407,6 +429,7 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // defaults
     updateLine('AAPL');
-    document.getElementById('tic-title').innerHTML = 'AAPL Time Series';
+    // manually changing the id, may not be best
+    document.getElementById('tic-title').innerHTML = 'AAPL Time-Series Revenue';
 
 });
