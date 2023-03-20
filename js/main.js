@@ -276,6 +276,8 @@ d3.csv('data/data.csv').then((data) => {
 
     function handleMouseclick(event, d) {
         updateLine(d.data.tic);
+        d3.select("#tic-title")
+            .text(d.data.tic + " Time Series");
     }
 
     // tooltip functionality on different situations
@@ -304,11 +306,9 @@ d3.csv('data/data.csv').then((data) => {
 
     // finding max asset total
     let Y_MAX2 = d3.max(data, (d) => {
-        return Math.max(d.at)
+        return (Math.max(d.at) * 1.1)
     });
-    
 
-    // y scale needed
     let Y_SCALE2 = d3.scaleLinear()
         .domain([0, Y_MAX2])
         .range([VIS_HEIGHT, 0]);
@@ -367,7 +367,7 @@ d3.csv('data/data.csv').then((data) => {
           });
         
         Y_MAX2 = d3.max(filteredData, (d) => {
-            return Math.max(d.at)
+            return (Math.max(d.at) * 1.1)
         });
 
         Y_SCALE2 = d3.scaleLinear()
@@ -396,13 +396,17 @@ d3.csv('data/data.csv').then((data) => {
             .append("circle")
             .attr("class", "circle")
             .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-            .attr("cy", d => Y_SCALE2(d.act))
+            .attr("cy", d => Y_SCALE2(d.at) + MARGINS.top)
             .attr("r", 5)
             .style("fill", "black");
+
+        
       
         
     }
 
-    updateLine('NFLX');
+    // defaults
+    updateLine('AAPL');
+    document.getElementById('tic-title').innerHTML = 'AAPL Time Series';
 
 });
