@@ -232,14 +232,14 @@ d3.csv('data/revdata.csv').then((data) => {
     function tooltips() {
         // adding a tooltip for hover functionality
         const TOOLTIP = d3.select("#vis1")
-        .append("div")
-        .style("opacity", 0)
-        .attr("class", "tooltip")
-        .style("background-color", "white")
-        .style("border", "solid")
-        .style("border-width", "2px")
-        .style("border-radius", "5px")
-        .style("padding", "5px");
+            .append("div")
+            .style("opacity", 0)
+            .attr("class", "tooltip")
+            .style("background-color", "white")
+            .style("border", "solid")
+            .style("border-width", "2px")
+            .style("border-radius", "5px")
+            .style("padding", "5px");
 
     // handling the mouse entering the space
     function handleMouseover(event, d) {
@@ -262,8 +262,8 @@ d3.csv('data/revdata.csv').then((data) => {
 
         // showing the tooltip with proper information
         TOOLTIP.html("Company: " + d.data.conm + "<br/>Account: " + DEFINITIONS[true_key] + "<br/>Value: " + d.data[true_key])
-            .style("left", (d3.pointer(this)[0]) + "px")
-            .style("top", (d3.pointer(this)[1]) + "px");
+            .style("left", (event.pageX + 10) + "px")
+            .style("top", (event.pageY - 50) + "px");
     }
 
     // handling the mouse exiting

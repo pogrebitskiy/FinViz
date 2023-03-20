@@ -18,3 +18,10 @@ h1 {
 .column {
     flex:50%;
 }
+
+.tooltip {
+    position: absolute;
+    background-color: grey;
+    border: solid;
+    padding: 5px;
+}
