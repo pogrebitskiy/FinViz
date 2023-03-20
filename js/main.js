@@ -276,7 +276,8 @@ d3.csv('data/revdata.csv').then((data) => {
         let true_key = key.replace("plot_", "");
 
         // showing the tooltip with proper information
-        TOOLTIP.html("Company: " + d.data.conm + "<br/>Account: " + DEFINITIONS[true_key] + "<br/>Value: " + d.data[true_key])
+        TOOLTIP.html("<b>" + DEFINITIONS[true_key] + "</b><br/><i>" + d.data.conm + "</i><br/>Value: $" + d.data[true_key] + 
+        "<br/>" + d3.format(".2f")(100 * d.data[true_key] / d.data.at) + "% of Total Assets ($" + d.data.at + ")")
             .style("left", (event.pageX + 10) + "px")
             .style("top", (event.pageY - 50) + "px");
     }
@@ -364,8 +365,9 @@ d3.csv('data/revdata.csv').then((data) => {
     function updateLine(tic) {    
         cur_tic = tic
 
-        // Clear the frame of all lines
+        // Clear the frame of all lines as well as all circles
         FRAME2.selectAll("circle").remove();
+        FRAME2.selectAll("path").remove();
 
         // get rid of all axis to recalc the y axis
         FRAME2.selectAll("g").remove();
@@ -375,8 +377,7 @@ d3.csv('data/revdata.csv').then((data) => {
         }
     
     function plot_lines() {
-        console.log('testing, current tic is ' + cur_tic);
-
+        // filtering by selected tic
         let filteredData = data.filter(function(d) {
             return d.tic === cur_tic;
           });
@@ -414,25 +415,38 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr("cy", d => Y_SCALE2(d.revt) + MARGINS.top)
             .attr("r", 5)
             .style("fill", "black");
+
+        const line = d3.line()
+            .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
+            .y(d => Y_SCALE2(d.revt) + MARGINS.top);
+
+        FRAME2.append("path")
+            .datum(filteredData)
+            .attr("class", "line")
+            .attr("d", line)
+            .style("stroke", "black")
+            .style("fill", "none");
         
         // harcoding for now
         const keys = ['Total Revenue']
 
+        // dot for legend
         FRAME2.selectAll("mydots")
             .data(keys)
             .enter()
             .append("circle")
             .attr("cx", VIS_WIDTH - MARGINS.right)
-            .attr("cy", function(d,i){ return VIS_HEIGHT + i*25}) 
+            .attr("cy", function(d,i){ return VIS_HEIGHT + 20 + i*25}) 
             .attr("r", 5)
             .style("fill", 'black');
 
+        // text for legend
         FRAME2.selectAll("mylabels")
             .data(keys)
             .enter()
             .append("text")
             .attr("x", VIS_WIDTH - MARGINS.right + 20)
-            .attr("y", function(d,i){ return VIS_HEIGHT + i*25})
+            .attr("y", function(d,i){ return VIS_HEIGHT + 20 + i*25})
             .style("fill", 'black')
             .text(function(d){ return d})
             .attr("text-anchor", "left")
