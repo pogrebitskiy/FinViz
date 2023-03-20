@@ -23,7 +23,7 @@ const VIS_WIDTH = FRAME_WIDTH - MARGINS.left - MARGINS.right
 
 
 
-d3.csv('data/data.csv').then((data) => {
+d3.csv('data/revdata.csv').then((data) => {
 
     // Function to parse date column
     const parseDate = d3.timeParse("%Y-%m-%d")
@@ -304,9 +304,9 @@ d3.csv('data/data.csv').then((data) => {
         .domain([2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022])
         .range([0, VIS_WIDTH]);
 
-    // finding max asset total
+    // finding max revenue
     let Y_MAX2 = d3.max(data, (d) => {
-        return (Math.max(d.at) * 1.1)
+        return (Math.max(d.revt) * 1.1)
     });
 
     let Y_SCALE2 = d3.scaleLinear()
@@ -333,7 +333,7 @@ d3.csv('data/data.csv').then((data) => {
         .attr('y', 25)
         .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
         .style('text-anchor', 'middle')
-        .text('Amount in Thousands of Dollars')
+        .text('Revenue in Thousands of Dollars')
         .attr('font-size', '12px')
         .attr('transform', 'rotate(-90)');
 
@@ -367,7 +367,7 @@ d3.csv('data/data.csv').then((data) => {
           });
         
         Y_MAX2 = d3.max(filteredData, (d) => {
-            return (Math.max(d.at) * 1.1)
+            return (Math.max(d.revt) * 1.1)
         });
 
         Y_SCALE2 = d3.scaleLinear()
@@ -396,7 +396,7 @@ d3.csv('data/data.csv').then((data) => {
             .append("circle")
             .attr("class", "circle")
             .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-            .attr("cy", d => Y_SCALE2(d.at) + MARGINS.top)
+            .attr("cy", d => Y_SCALE2(d.revt) + MARGINS.top)
             .attr("r", 5)
             .style("fill", "black");
 
