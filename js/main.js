@@ -44,7 +44,7 @@ d3.csv('data/revdata.csv').then((data) => {
         ivaeq: 'Investments and Advances - Equity Method',
         ivao: 'Investments and Advances - Other',
         ao: 'Total Other Assets',
-        lct: 'Total Current Assets',
+        lct: 'Total Current Liabilities',
         txditc: 'Deferred Taxes and Investment Tax Credit',
         lo: 'Other Liabilities',
         dltt: 'Total Long-Term Debt',
@@ -97,8 +97,8 @@ d3.csv('data/revdata.csv').then((data) => {
 
     const PADDING = 0.12;
 
+    // groups based off tic
     const groups = data.map(d => d.tic);
-    console.log(groups);
 
     // creating scales
     const X_SCALE = d3.scaleBand()
@@ -110,7 +110,6 @@ d3.csv('data/revdata.csv').then((data) => {
     const Y_MAX = d3.max(data, (d) => {
         return Math.max(d.at/d.at, d.lt/d.at, d.teq/d.at)
     });
-    console.log(Y_MAX);
 
     // y scale needed
     const Y_SCALE = d3.scaleLinear()
@@ -293,7 +292,7 @@ d3.csv('data/revdata.csv').then((data) => {
     function handleMouseclick(event, d) {
         updateLine(d.data.tic);
         d3.select("#tic-title")
-            .text(d.data.tic + " Time-Series Revenue");
+            .text(d.data.tic + " Time-Series");
     }
 
     // tooltip functionality on different situations
@@ -310,9 +309,7 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // this is not working as expected, will hardcode years for now
     const yearFormat = d3.timeFormat("%Y");
-    const years = Array.from(new Set(data.map(d => yearFormat(parseDate(d.datadate)))));
-    console.log(years);
-    
+    const years = Array.from(new Set(data.map(d => yearFormat(parseDate(d.datadate)))));    
 
     // creating scales
     let X_SCALE2 = d3.scaleBand()
@@ -320,9 +317,9 @@ d3.csv('data/revdata.csv').then((data) => {
         .domain([2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022])
         .range([0, VIS_WIDTH]);
 
-    // finding max revenue
+    // finding max assets
     let Y_MAX2 = d3.max(data, (d) => {
-        return (Math.max(d.revt) * 1.1)
+        return (Math.max(d.at) * 1.2)
     });
 
     let Y_SCALE2 = d3.scaleLinear()
@@ -349,7 +346,7 @@ d3.csv('data/revdata.csv').then((data) => {
         .attr('y', 25)
         .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
         .style('text-anchor', 'middle')
-        .text('Revenue in Thousands of Dollars')
+        .text('Thousands of Dollars')
         .attr('font-size', '12px')
         .attr('transform', 'rotate(-90)');
 
@@ -383,7 +380,7 @@ d3.csv('data/revdata.csv').then((data) => {
           });
         
         Y_MAX2 = d3.max(filteredData, (d) => {
-            return (Math.max(d.revt) * 1.1)
+            return (Math.max(d.at) * 1.2)
         });
 
         Y_SCALE2 = d3.scaleLinear()
@@ -405,49 +402,90 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr('font-size', '10px')
             .attr('transform', 'rotate(-45)');
         
-        // add circles, doing scatter for now
-        FRAME2.selectAll(".circle")
+        // making a o- plot for total assets
+        FRAME2.selectAll(".a-circle")
             .data(filteredData)
             .enter()
             .append("circle")
-            .attr("class", "circle")
+            .attr("class", "a-circle")
             .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-            .attr("cy", d => Y_SCALE2(d.revt) + MARGINS.top)
+            .attr("cy", d => Y_SCALE2(d.at) + MARGINS.top)
             .attr("r", 5)
-            .style("fill", "black");
+            .style("fill", "blue");
 
-        const line = d3.line()
-            .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-            .y(d => Y_SCALE2(d.revt) + MARGINS.top);
+        // making a o- plot for total liabilities
+        FRAME2.selectAll(".l-circle")
+            .data(filteredData)
+            .enter()
+            .append("circle")
+            .attr("class", "l-circle")
+            .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
+            .attr("cy", d => Y_SCALE2(d.lt) + MARGINS.top)
+            .attr("r", 5)
+            .style("fill", "red");
+
+
+        // making a o- plot for total equity
+        FRAME2.selectAll(".e-circle")
+            .data(filteredData)
+            .enter()
+            .append("circle")
+            .attr("class", "e-circle")
+            .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
+            .attr("cy", d => Y_SCALE2(d.teq) + MARGINS.top)
+            .attr("r", 5)
+            .style("fill", "green");
+        
+        FRAME2.append("path")
+            .datum(filteredData)
+            .attr("class", "line")
+            .attr("d", d3.line()
+                .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
+                .y(d => Y_SCALE2(d.at) + MARGINS.top))
+            .style("stroke", "blue")
+            .style("fill", "none");
 
         FRAME2.append("path")
             .datum(filteredData)
             .attr("class", "line")
-            .attr("d", line)
-            .style("stroke", "black")
+            .attr("d", d3.line()
+                .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
+                .y(d => Y_SCALE2(d.lt) + MARGINS.top))
+            .style("stroke", "red")
+            .style("fill", "none");
+
+
+        FRAME2.append("path")
+            .datum(filteredData)
+            .attr("class", "line")
+            .attr("d", d3.line()
+                .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
+                .y(d => Y_SCALE2(d.teq) + MARGINS.top))
+            .style("stroke", "green")
             .style("fill", "none");
         
         // harcoding for now
-        const keys = ['Total Revenue']
+        const keys = ['Total Assets', 'Total Liabilities', 'Total Equity'];
+        const key_colors = ['blue', 'red', 'green'];
 
         // dot for legend
         FRAME2.selectAll("mydots")
             .data(keys)
             .enter()
             .append("circle")
-            .attr("cx", VIS_WIDTH - MARGINS.right)
-            .attr("cy", function(d,i){ return VIS_HEIGHT + 20 + i*25}) 
+            .attr("cx", MARGINS.right + 20)
+            .attr("cy", function(d,i){ return MARGINS.left + i*25}) 
             .attr("r", 5)
-            .style("fill", 'black');
+            .style("fill", function(d,i){ return key_colors[i]});
 
         // text for legend
         FRAME2.selectAll("mylabels")
             .data(keys)
             .enter()
             .append("text")
-            .attr("x", VIS_WIDTH - MARGINS.right + 20)
-            .attr("y", function(d,i){ return VIS_HEIGHT + 20 + i*25})
-            .style("fill", 'black')
+            .attr("x", MARGINS.right + 30)
+            .attr("y", function(d,i){ return MARGINS.left + i*25})
+            .style("fill", function(d,i){ return key_colors[i]})
             .text(function(d){ return d})
             .attr("text-anchor", "left")
             .style("alignment-baseline", "middle");
@@ -459,6 +497,6 @@ d3.csv('data/revdata.csv').then((data) => {
     // defaults
     updateLine('AAPL');
     // manually changing the id, may not be best
-    document.getElementById('tic-title').innerHTML = 'AAPL Time-Series Revenue';
+    document.getElementById('tic-title').innerHTML = 'AAPL Time-Series';
 
 });
