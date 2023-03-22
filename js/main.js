@@ -103,7 +103,7 @@ d3.csv('data/revdata.csv').then((data) => {
     const PADDING = 0.12;
 
     // to be used with tooltips
-    let selectedBars = 'NULL';
+    let selectedBars = 'AAPL';
 
     // groups based off tic
     const groups = data.map(d => d.tic);
