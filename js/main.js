@@ -100,6 +100,7 @@ d3.csv('data/revdata.csv').then((data) => {
                         .nodes()
                         .map(node => node.value);
 
+        console.log(cur_companies);
 
         // Clear the frame of all bars
         FRAME1.selectAll("rect").remove();
