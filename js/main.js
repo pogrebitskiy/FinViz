@@ -645,6 +645,11 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // defaults
     updateLine('AAPL');
+    FRAME1.selectAll("rect")
+            .filter(d => d.data.tic === 'AAPL')
+            .style("opacity", 1);
+    selectedBars = { tic: 'AAPL' };
+
     // manually changing the id, may not be best
     document.getElementById('tic-title').innerHTML = 'AAPL Time-Series';
 
