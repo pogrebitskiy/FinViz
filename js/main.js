@@ -100,6 +100,11 @@ d3.csv('data/revdata.csv').then((data) => {
     // groups based off tic
     const groups = data.map(d => d.tic);
 
+    // to assist with formating large numbers
+    function formatNumber(num) {
+        return num.toLocaleString();
+      }
+
     // creating scales
     const X_SCALE = d3.scaleBand()
     .domain(groups)
@@ -127,7 +132,7 @@ d3.csv('data/revdata.csv').then((data) => {
         .attr('y', 25)
         .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
         .style('text-anchor', 'middle')
-        .text('Proportion of Total Assets')
+        .text('Percentage of Total Assets')
         .attr('font-size', '12px')
         .attr('transform', 'rotate(-90)')
 
@@ -275,8 +280,8 @@ d3.csv('data/revdata.csv').then((data) => {
         let true_key = key.replace("plot_", "");
 
         // showing the tooltip with proper information
-        TOOLTIP.html("<b>" + DEFINITIONS[true_key] + "</b><br/><i>" + d.data.conm + "</i><br/>Value: $" + d.data[true_key] + 
-        "<br/>" + d3.format(".2f")(100 * d.data[true_key] / d.data.at) + "% of Total Assets ($" + d.data.at + ")")
+        TOOLTIP.html("<b>" + DEFINITIONS[true_key] + "</b><br/><i>" + d.data.conm + "</i><br/>Value: $" + formatNumber((d.data[true_key]*1000)) + 
+        "<br/>" + d3.format(".2f")(100 * d.data[true_key] / d.data.at) + "% of Total Assets ($" + formatNumber(d.data.at * 1000) + ")")
             .style("left", (event.pageX + 10) + "px")
             .style("top", (event.pageY - 50) + "px");
     }
@@ -411,7 +416,9 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
             .attr("cy", d => Y_SCALE2(d.at) + MARGINS.top)
             .attr("r", 5)
-            .style("fill", "blue");
+            .style("fill", "blue")
+            .append("title") 
+            .text(d => "Value: $" + formatNumber(d.at * 1000) + " Year: " + d.fyear);
 
         // making a o- plot for total liabilities
         FRAME2.selectAll(".l-circle")
@@ -422,7 +429,9 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
             .attr("cy", d => Y_SCALE2(d.lt) + MARGINS.top)
             .attr("r", 5)
-            .style("fill", "red");
+            .style("fill", "red")
+            .append("title") 
+            .text(d => "Value: $" + formatNumber(d.lt * 1000) + " Year: " + d.fyear);
 
 
         // making a o- plot for total equity
@@ -434,7 +443,9 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
             .attr("cy", d => Y_SCALE2(d.teq) + MARGINS.top)
             .attr("r", 5)
-            .style("fill", "green");
+            .style("fill", "green")
+            .append("title") 
+            .text(d => "Value: $" + formatNumber(d.teq * 1000) + " Year: " + d.fyear);
         
         FRAME2.append("path")
             .datum(filteredData)
