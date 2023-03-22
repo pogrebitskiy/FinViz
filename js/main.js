@@ -103,7 +103,7 @@ d3.csv('data/revdata.csv').then((data) => {
     const PADDING = 0.12;
 
     // to be used with tooltips
-    let selectedBars = null;
+    let selectedBars = 'NULL';
 
     // groups based off tic
     const groups = data.map(d => d.tic);
@@ -293,25 +293,23 @@ d3.csv('data/revdata.csv').then((data) => {
     // handling the mouse exiting
     function handleMouseleave(event, d) {
         TOOLTIP.style("opacity", 0)
-        d3.select(this)
-            .style("stroke", "none")
-            .style("opacity", 0.4)
+        if (d.data.tic !== selectedBars.tic) {
+            d3.select(this)
+                .style("stroke", "none")
+                .style("opacity", 0.4)
+        }
     }
 
     function handleMouseclick(event, d) {
-        // selectedBars = { tic: d.tic };
-        // if (selectedBars && selectedBars.tic !== d.tic) {
-        //     FRAME1.selectAll("rect")
-        //       .filter(d => d.tic === selectedBars.tic)
-        //       .style("opacity", 0.4);
-        // }
-        // console.log(d);
-        // console.log(selectedBars)
+        selectedBars = { tic: d.data.tic };
         // Set the opacity of the clicked bars to 1 and update the selectedBars variable
-        // FRAME1.selectAll("rect")
-        //     .filter(d => d.tic === selectedBars.tic)
-        //     .style("opacity", 1);
-        // selectedBars = d;
+        FRAME1.selectAll("rect")
+            .filter(d => d.data.tic === selectedBars.tic)
+            .style("opacity", 1);
+
+        FRAME1.selectAll("rect")
+            .filter(d => d.data.tic !== selectedBars.tic)
+            .style("opacity", 0.4);
 
         updateLine(d.data.tic);
         d3.select("#tic-title")
@@ -448,7 +446,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .style('text-anchor', 'end')
             .attr('font-size', '10px')
             .attr('transform', 'rotate(-45)');
-        
+
         // making a o- plot for total assets
         FRAME2.selectAll(".a-circle")
             .data(filteredData)
@@ -461,6 +459,15 @@ d3.csv('data/revdata.csv').then((data) => {
             .style("fill", "blue")
             .append("title")
             .text(d => "Value: $" + formatNumber(d.at * 1000) + " Year: " + d.fyear);
+        
+        FRAME2.append("path")
+            .datum(filteredData)
+            .attr("class", "line")
+            .attr("d", d3.line()
+                .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
+                .y(d => Y_SCALE2(d.at) + MARGINS.top))
+            .style("stroke", "blue")
+            .style("fill", "none");
 
         // making a o- plot for total liabilities
         FRAME2.selectAll(".l-circle")
@@ -475,6 +482,14 @@ d3.csv('data/revdata.csv').then((data) => {
             .append("title") 
             .text(d => "Value: $" + formatNumber(d.lt * 1000) + " Year: " + d.fyear);
 
+        FRAME2.append("path")
+            .datum(filteredData)
+            .attr("class", "line")
+            .attr("d", d3.line()
+                .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
+                .y(d => Y_SCALE2(d.lt) + MARGINS.top))
+            .style("stroke", "red")
+            .style("fill", "none");
 
         // making a o- plot for total equity
         FRAME2.selectAll(".e-circle")
@@ -489,25 +504,6 @@ d3.csv('data/revdata.csv').then((data) => {
             .append("title") 
             .text(d => "Value: $" + formatNumber(d.teq * 1000) + " Year: " + d.fyear);
         
-        FRAME2.append("path")
-            .datum(filteredData)
-            .attr("class", "line")
-            .attr("d", d3.line()
-                .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-                .y(d => Y_SCALE2(d.at) + MARGINS.top))
-            .style("stroke", "blue")
-            .style("fill", "none");
-
-        FRAME2.append("path")
-            .datum(filteredData)
-            .attr("class", "line")
-            .attr("d", d3.line()
-                .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-                .y(d => Y_SCALE2(d.lt) + MARGINS.top))
-            .style("stroke", "red")
-            .style("fill", "none");
-
-
         FRAME2.append("path")
             .datum(filteredData)
             .attr("class", "line")
