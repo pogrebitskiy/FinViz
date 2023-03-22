@@ -36,7 +36,7 @@ d3.csv('data/revdata.csv').then((data) => {
     console.log(data.columns.slice(1));
 
 
-    // will be used for mapping later
+    // will be used for mapping
     const DEFINITIONS = {
         act: 'Total Current Assets',
         ppent: 'Total Property, Plant, and Equipment',
@@ -52,6 +52,11 @@ d3.csv('data/revdata.csv').then((data) => {
         pstk: 'Total Preferred/Preference Stock (Capital)',
         mibn: 'Nonredeemable Noncontrolling Interest'
     };
+
+    // will be used for legends
+    const vis1_keys = ['Assets', 'Liabilities', 'Equities'];
+    const vis2_keys = ['Total Assets', 'Total Liabilities', 'Total Equities'];
+    const key_colors = ['blue', 'red', 'green'];
 
     // Populate dropdown with year choices
     let choose_years = new Set(data.map(d => d.fyear));
@@ -97,6 +102,9 @@ d3.csv('data/revdata.csv').then((data) => {
 
     const PADDING = 0.12;
 
+    // to be used with tooltips
+    let selectedBars = null;
+
     // groups based off tic
     const groups = data.map(d => d.tic);
 
@@ -111,7 +119,7 @@ d3.csv('data/revdata.csv').then((data) => {
     .range([0, VIS_WIDTH])
     .padding(PADDING);
 
-    // not working as expected: FIXED
+    // max y value
     const Y_MAX = d3.max(data, (d) => {
         return Math.max(d.at/d.at, d.lt/d.at, d.teq/d.at)
     });
@@ -263,11 +271,7 @@ d3.csv('data/revdata.csv').then((data) => {
     // handling the mouse entering the space
     function handleMouseover(event, d) {
         TOOLTIP.style("opacity", 1);
-        // TOOLTIP.transition()
-        //     .duration(200);
         d3.select(this)
-        //.style("stroke", "black")
-        //.style('stroke-width', 3)
         .style("opacity", 1);
     }
 
@@ -295,9 +299,23 @@ d3.csv('data/revdata.csv').then((data) => {
     }
 
     function handleMouseclick(event, d) {
+        // selectedBars = { tic: d.tic };
+        // if (selectedBars && selectedBars.tic !== d.tic) {
+        //     FRAME1.selectAll("rect")
+        //       .filter(d => d.tic === selectedBars.tic)
+        //       .style("opacity", 0.4);
+        // }
+        // console.log(d);
+        // console.log(selectedBars)
+        // Set the opacity of the clicked bars to 1 and update the selectedBars variable
+        // FRAME1.selectAll("rect")
+        //     .filter(d => d.tic === selectedBars.tic)
+        //     .style("opacity", 1);
+        // selectedBars = d;
+
         updateLine(d.data.tic);
         d3.select("#tic-title")
-            .text(d.data.tic + " Time-Series");
+        .text(d.data.tic + " Time-Series");
     }
 
     // tooltip functionality on different situations
@@ -307,7 +325,30 @@ d3.csv('data/revdata.csv').then((data) => {
         .on("mouseleave", handleMouseleave)
         .on("click", handleMouseclick);
     }
-    
+
+    // dot for legend
+    FRAME1.selectAll("mydots")
+        .data(vis1_keys)
+        .enter()
+        .append("circle")
+        .attr("cx", VIS_WIDTH + MARGINS.left)
+        .attr("cy", function(d,i){ return MARGINS.left + i*25}) 
+        .attr("r", 4)
+        .style("fill", function(d,i){ return key_colors[i]});
+
+    // text for legend
+    FRAME1.selectAll("mylabels")
+        .data(vis1_keys)
+        .enter()
+        .append("text")
+        .attr("x", VIS_WIDTH + MARGINS.left + 10)
+        .attr("y", function(d,i){ return MARGINS.left + i*25})
+        .style("fill", function(d,i){ return key_colors[i]})
+        .text(function(d){ return d})
+        .attr("text-anchor", "left")
+        .style("alignment-baseline", "middle")
+        .style("font-size","12px");
+        
 
 
     // Frame 2: Time Series Line
@@ -376,6 +417,7 @@ d3.csv('data/revdata.csv').then((data) => {
 
         // Plots the new bars
         plot_lines();
+        //tooltips2();
         }
     
     function plot_lines() {
@@ -417,7 +459,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr("cy", d => Y_SCALE2(d.at) + MARGINS.top)
             .attr("r", 5)
             .style("fill", "blue")
-            .append("title") 
+            .append("title")
             .text(d => "Value: $" + formatNumber(d.at * 1000) + " Year: " + d.fyear);
 
         // making a o- plot for total liabilities
@@ -473,36 +515,71 @@ d3.csv('data/revdata.csv').then((data) => {
                 .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
                 .y(d => Y_SCALE2(d.teq) + MARGINS.top))
             .style("stroke", "green")
-            .style("fill", "none");
-        
-        // harcoding for now
-        const keys = ['Total Assets', 'Total Liabilities', 'Total Equity'];
-        const key_colors = ['blue', 'red', 'green'];
+            .style("fill", "none");        
 
         // dot for legend
         FRAME2.selectAll("mydots")
-            .data(keys)
+            .data(vis2_keys)
             .enter()
             .append("circle")
             .attr("cx", MARGINS.right + 20)
             .attr("cy", function(d,i){ return MARGINS.left + i*25}) 
-            .attr("r", 5)
+            .attr("r", 4)
             .style("fill", function(d,i){ return key_colors[i]});
 
         // text for legend
         FRAME2.selectAll("mylabels")
-            .data(keys)
-            .enter()
-            .append("text")
-            .attr("x", MARGINS.right + 30)
-            .attr("y", function(d,i){ return MARGINS.left + i*25})
-            .style("fill", function(d,i){ return key_colors[i]})
-            .text(function(d){ return d})
-            .attr("text-anchor", "left")
-            .style("alignment-baseline", "middle");
+                .data(vis2_keys)
+                .enter()
+                .append("text")
+                .attr("x", MARGINS.right + 25)
+                .attr("y", function(d,i){ return MARGINS.left + i*25})
+                .style("fill", function(d,i){ return key_colors[i]})
+                .text(function(d){ return d})
+                .attr("text-anchor", "left")
+                .style("alignment-baseline", "middle")
+                .style("font-size","12px");
+    }
+
+    
+
+    function tooltips2() {
+        // adding a tooltip for hover functionality
+        const TOOLTIP2 = d3.select("#vis2")
+            .append("div")
+            .style("opacity", 0)
+            .attr("class", "tooltip")
+            .style("background-color", "white")
+            .style("border", "solid")
+            .style("border-width", "2px")
+            .style("border-radius", "5px")
+            .style("padding", "5px");
+
+        // handling the mouse entering the space
+        function handleMouseover2(event, d) {
+            TOOLTIP.style("opacity", 1);
+            d3.select(this)
+            .style("opacity", 1);
+        }
+
+        // handing a mouse movement
+        function handleMousemove2(event, d) {
+            console.log(d);
+            //TOOLTIP.html();
+        }
+
+        // handling the mouse exiting
+        function handleMouseleave2(event, d) {
+            TOOLTIP.style("opacity", 0)
+        }
+
         
-      
-        
+
+        // tooltip functionality on different situations
+        FRAME2.selectAll(".e-circle")
+            .on("mouseover", handleMouseover2)
+            .on("mousemove", handleMousemove2)
+            .on("mouseleave", handleMouseleave2);
     }
 
     // defaults
