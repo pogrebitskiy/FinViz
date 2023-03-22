@@ -84,6 +84,10 @@ d3.csv('data/revdata.csv').then((data) => {
     // Initialize first year to render site with
     let cur_year = d3.select("#selectYear").node().value;
 
+    let cur_companies = d3.selectAll('.company_cb:checked')
+                        .nodes()
+                        .map(node => node.value);
+
     // Add event listener to plot, changes with dropdown changes
     d3.select('#selectYear').on('change', updatePlot);
 
@@ -92,15 +96,21 @@ d3.csv('data/revdata.csv').then((data) => {
     function updatePlot() {
         cur_year = d3.select("#selectYear").node().value;
 
+        cur_companies = d3.selectAll('.company_cb:checked')
+                        .nodes()
+                        .map(node => node.value);
+
+
         // Clear the frame of all bars
         FRAME1.selectAll("rect").remove();
+        FRAME1.selectAll(".axis").remove();
 
         // Plots the new bars
         plot_bars();
         tooltips();
     }
 
-    const PADDING = 0.12;
+    const PADDING = 0.4;
 
     // to be used with tooltips
     let selectedBars = 'AAPL';
@@ -132,6 +142,7 @@ d3.csv('data/revdata.csv').then((data) => {
     // add y axis
     FRAME1.append('g')
         .attr('transform', 'translate(' + MARGINS.top + ',' + MARGINS.left + ')')
+        .attr('class', 'axis')
         .call(d3.axisLeft(Y_SCALE).ticks(10))
         .attr('font-size', '10px');
 
@@ -147,6 +158,7 @@ d3.csv('data/revdata.csv').then((data) => {
     // add x axis
     FRAME1.append('g')
         .attr('transform', 'translate(' + MARGINS.left + ',' + (VIS_HEIGHT + MARGINS.top) + ')')
+        .attr('class', 'axis')
         .call(d3.axisBottom(X_SCALE).ticks(3))
         .selectAll('text')
         .style('text-anchor', 'end')
@@ -173,6 +185,61 @@ d3.csv('data/revdata.csv').then((data) => {
 
     function plot_bars() {
 
+        let filtered_data = data.filter(d => cur_companies.includes(d.tic));
+
+        // groups based off tic
+        const groups = filtered_data.map(d => d.tic);
+
+        // creating scales
+        const X_SCALE = d3.scaleBand()
+        .domain(groups)
+        .range([0, VIS_WIDTH])
+        .padding(PADDING);
+
+        // max y value
+        const Y_MAX = d3.max(filtered_data, (d) => {
+            return Math.max(d.at/d.at, d.lt/d.at, d.teq/d.at)
+        });
+
+        // y scale needed
+        const Y_SCALE = d3.scaleLinear()
+            .domain([0, Y_MAX])
+            .range([VIS_HEIGHT, 0])
+
+        // add y axis
+        FRAME1.append('g')
+            .attr('transform', 'translate(' + MARGINS.top + ',' + MARGINS.left + ')')
+            .attr('class', 'axis')
+            .call(d3.axisLeft(Y_SCALE).ticks(10))
+            .attr('font-size', '10px');
+
+        // y axis label
+        FRAME1.append('text')
+            .attr('y', 25)
+            .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
+            .style('text-anchor', 'middle')
+            .text('Percentage of Total Assets')
+            .attr('font-size', '12px')
+            .attr('transform', 'rotate(-90)')
+
+        // add x axis
+        FRAME1.append('g')
+            .attr('transform', 'translate(' + MARGINS.left + ',' + (VIS_HEIGHT + MARGINS.top) + ')')
+            .attr('class', 'axis')
+            .call(d3.axisBottom(X_SCALE).ticks(3))
+            .selectAll('text')
+            .style('text-anchor', 'end')
+            .attr('font-size', '10px')
+            .attr('transform', 'rotate(-45)');
+
+        // x axis label
+        FRAME1.append('text')
+            .attr('x', VIS_WIDTH/2 + MARGINS.left)
+            .attr('y', FRAME_HEIGHT - 20)
+            .style('text-anchor', 'middle')
+            .text('Ticker')
+            .attr('font-size', '12px');
+
         // Specify desired columns
         const asset_subgroups = ['plot_act', 'plot_ppent', 'plot_ivaeq', 'plot_ivao', 'plot_intan', 'plot_ao'];
         const liab_subgroups = ['plot_lct', 'plot_txditc', 'plot_lo', 'plot_dltt']
@@ -184,7 +251,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .range(['#00a9ff', '#51b5ff', '#84c8ff', '#b4e0ff', '#ceefff', '#ddf9ff']);
         const asset_stack = d3.stack()
             .keys(asset_subgroups)
-            (data.filter(d => d.fyear === cur_year));
+            (filtered_data.filter(d => d.fyear === cur_year));
 
         // Create color map and bar stack series
         const liab_color = d3.scaleOrdinal()
@@ -192,7 +259,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .range(['#ff0000', '#ff3921', '#ff6044', '#ff8870']);
         const liab_stack = d3.stack()
             .keys(liab_subgroups)
-            (data.filter(d => d.fyear === cur_year));
+            (filtered_data.filter(d => d.fyear === cur_year));
 
         // Create color map and bar stack series
         const eq_color = d3.scaleOrdinal()
@@ -200,10 +267,24 @@ d3.csv('data/revdata.csv').then((data) => {
             .range(['#54ff00', '#afff8b', '#d7ffc2']);
         const eq_stack = d3.stack()
             .keys(eq_subgroups)
-            (data.filter(d => d.fyear === cur_year));
+            (filtered_data.filter(d => d.fyear === cur_year));
 
 
-        const bandwidth = 10;
+        let liab_bars = g_liab
+            .selectAll('g.series')
+            .data(liab_stack)
+            .join('g')
+            .classed('series', true)
+            .style('fill', (d) => liab_color(d.key))
+
+        liab_bars.selectAll('rect')
+            .data((d) => d)
+            .join('rect')
+            .attr('width', X_SCALE.bandwidth()/2)
+            .attr('x', (d) => X_SCALE(d.data.tic) + MARGINS.right + X_SCALE.bandwidth() / 4)
+            .attr('height', (d) => Y_SCALE(d[0]) - Y_SCALE(d[1]))
+            .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom)
+            .style("opacity", 0.4);
 
         // Fill svg container with individual svgs
         let asset_bars = g_assets
@@ -216,27 +297,12 @@ d3.csv('data/revdata.csv').then((data) => {
         asset_bars.selectAll('rect')
             .data((d) => d)
             .join('rect')
-            .attr('width', bandwidth)
-            .attr('x', (d) => X_SCALE(d.data.tic) + MARGINS.right)
+            .attr('width', X_SCALE.bandwidth()/2)
+            .attr('x', (d) => X_SCALE(d.data.tic) - X_SCALE.bandwidth() / 2 + MARGINS.right + X_SCALE.bandwidth() / 4)
             .attr('height', (d) => Y_SCALE(d[0]) - Y_SCALE(d[1]))
             .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom)
             .style("opacity", 0.4);
 
-        let liab_bars = g_liab
-            .selectAll('g.series')
-            .data(liab_stack)
-            .join('g')
-            .classed('series', true)
-            .style('fill', (d) => liab_color(d.key))
-
-        liab_bars.selectAll('rect')
-            .data((d) => d)
-            .join('rect')
-            .attr('width', bandwidth)
-            .attr('x', (d) => X_SCALE(d.data.tic) + bandwidth + MARGINS.right)
-            .attr('height', (d) => Y_SCALE(d[0]) - Y_SCALE(d[1]))
-            .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom)
-            .style("opacity", 0.4);
 
         let eq_bars = g_eq
             .selectAll('g.series')
@@ -248,8 +314,8 @@ d3.csv('data/revdata.csv').then((data) => {
         eq_bars.selectAll('rect')
             .data((d) => d)
             .join('rect')
-            .attr('width', bandwidth)
-            .attr('x', (d) => X_SCALE(d.data.tic) + bandwidth * 2 + MARGINS.right)
+            .attr('width', X_SCALE.bandwidth()/2)
+            .attr('x', (d) => X_SCALE(d.data.tic) + X_SCALE.bandwidth()/2 + MARGINS.right + X_SCALE.bandwidth() / 4)
             .attr('height', (d) => Y_SCALE(d[0]) - Y_SCALE(d[1]))
             .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom)
             .style("opacity", 0.4);
