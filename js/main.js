@@ -21,8 +21,6 @@ const FRAME2 = d3.select('#vis2')
 const VIS_HEIGHT = FRAME_HEIGHT - MARGINS.top - MARGINS.bottom
 const VIS_WIDTH = FRAME_WIDTH - MARGINS.left - MARGINS.right
 
-
-
 d3.csv('data/revdata.csv').then((data) => {
 
     // Function to parse date column
@@ -32,9 +30,6 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // logging the first 10 rows, as required
     console.log(data.slice(0,10));
-
-    console.log(data.columns.slice(1));
-
 
     // will be used for mapping
     const DEFINITIONS = {
@@ -107,12 +102,17 @@ d3.csv('data/revdata.csv').then((data) => {
         // Plots the new bars
         plot_bars();
         tooltips();
+
+        FRAME1.selectAll("rect")
+            .filter(d => d.data.tic === selectedBars.tic)
+            .style("opacity", 1);
+
+        FRAME1.selectAll("rect")
+            .filter(d => d.data.tic !== selectedBars.tic)
+            .style("opacity", 0.4);
     }
 
     const PADDING = 0.4;
-
-    // to be used with tooltips
-    let selectedBars = 'AAPL';
 
     // groups based off tic
     const groups = data.map(d => d.tic);
@@ -121,6 +121,9 @@ d3.csv('data/revdata.csv').then((data) => {
     function formatNumber(num) {
         return num.toLocaleString();
       }
+
+    //init tic value
+    selectedBars = { tic: 'AAPL' };
 
     // creating scales
     const X_SCALE = d3.scaleBand()
@@ -416,14 +419,13 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // Frame 2: Time Series Line
 
-    // this is not working as expected, will hardcode years for now
-    const yearFormat = d3.timeFormat("%Y");
-    const years = Array.from(new Set(data.map(d => yearFormat(parseDate(d.datadate)))));    
+    // finding the unique years in the data
+    const years = Array.from(new Set(data.map(d => d.fyear)));
 
     // creating scales
     let X_SCALE2 = d3.scaleBand()
         // harcoded for testing
-        .domain([2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022])
+        .domain(years)
         .range([0, VIS_WIDTH]);
 
     // finding max assets
@@ -467,7 +469,7 @@ d3.csv('data/revdata.csv').then((data) => {
         .text('Year')
         .attr('font-size', '12px');
 
-
+    // line plot update function
     function updateLine(tic) {    
         cur_tic = tic
 
@@ -600,9 +602,7 @@ d3.csv('data/revdata.csv').then((data) => {
                 .attr("text-anchor", "left")
                 .style("alignment-baseline", "middle")
                 .style("font-size","12px");
-    }
-
-    
+    }    
 
     function tooltips2() {
         // adding a tooltip for hover functionality
@@ -633,8 +633,6 @@ d3.csv('data/revdata.csv').then((data) => {
         function handleMouseleave2(event, d) {
             TOOLTIP.style("opacity", 0)
         }
-
-        
 
         // tooltip functionality on different situations
         FRAME2.selectAll(".e-circle")
