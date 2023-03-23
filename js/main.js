@@ -424,7 +424,6 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // creating scales
     let X_SCALE2 = d3.scaleBand()
-        // harcoded for testing
         .domain(years)
         .range([0, VIS_WIDTH]);
 
@@ -479,6 +478,10 @@ d3.csv('data/revdata.csv').then((data) => {
 
         // get rid of all axis to recalc the y axis
         FRAME2.selectAll("g").remove();
+        //FRAME2.selectAll("circle")
+        //    .transition().duration(1000)
+        //    .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
+        //    .attr("cy", d => Y_SCALE2(d.at) + MARGINS.top)
 
         // Plots the new bars
         plot_lines();
@@ -520,6 +523,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .enter()
             .append("circle")
             .attr("class", "a-circle")
+            //.transition().duration(1000)
             .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
             .attr("cy", d => Y_SCALE2(d.at) + MARGINS.top)
             .attr("r", 5)
@@ -604,43 +608,7 @@ d3.csv('data/revdata.csv').then((data) => {
                 .style("font-size","12px");
     }    
 
-    function tooltips2() {
-        // adding a tooltip for hover functionality
-        const TOOLTIP2 = d3.select("#vis2")
-            .append("div")
-            .style("opacity", 0)
-            .attr("class", "tooltip")
-            .style("background-color", "white")
-            .style("border", "solid")
-            .style("border-width", "2px")
-            .style("border-radius", "5px")
-            .style("padding", "5px");
-
-        // handling the mouse entering the space
-        function handleMouseover2(event, d) {
-            TOOLTIP.style("opacity", 1);
-            d3.select(this)
-            .style("opacity", 1);
-        }
-
-        // handing a mouse movement
-        function handleMousemove2(event, d) {
-            console.log(d);
-            //TOOLTIP.html();
-        }
-
-        // handling the mouse exiting
-        function handleMouseleave2(event, d) {
-            TOOLTIP.style("opacity", 0)
-        }
-
-        // tooltip functionality on different situations
-        FRAME2.selectAll(".e-circle")
-            .on("mouseover", handleMouseover2)
-            .on("mousemove", handleMousemove2)
-            .on("mouseleave", handleMouseleave2);
-    }
-
+    
     // defaults
     updateLine('AAPL');
     FRAME1.selectAll("rect")
