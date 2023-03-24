@@ -35,3 +35,7 @@ h1 {
 rect {
     z-index: 0;
 }
+
+text {
+    user-select: none;
+}

@@ -416,8 +416,7 @@ d3.csv('data/revdata.csv').then((data) => {
         .style("font-size","12px");
         
 
-
-    // Frame 2: Time Series Line
+    // Frame 2: Time Series Viz
 
     // finding the unique years in the data
     const years = Array.from(new Set(data.map(d => d.fyear)));
@@ -443,7 +442,7 @@ d3.csv('data/revdata.csv').then((data) => {
         .attr('font-size', '10px');
 
     // add x axis
-    FRAME2.append('g')
+    let xAxis = FRAME2.append('g')
         .attr('transform', 'translate(' + MARGINS.left + ',' + (VIS_HEIGHT + MARGINS.top) + ')')
         .call(d3.axisBottom(X_SCALE2).ticks(3))
         .selectAll('text')
@@ -478,14 +477,9 @@ d3.csv('data/revdata.csv').then((data) => {
 
         // get rid of all axis to recalc the y axis
         FRAME2.selectAll("g").remove();
-        //FRAME2.selectAll("circle")
-        //    .transition().duration(1000)
-        //    .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-        //    .attr("cy", d => Y_SCALE2(d.at) + MARGINS.top)
 
         // Plots the new bars
         plot_lines();
-        //tooltips2();
         }
     
     function plot_lines() {
@@ -509,7 +503,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr('font-size', '10px');
 
         // add x axis
-        FRAME2.append('g')
+        xAxis = FRAME2.append('g')
             .attr('transform', 'translate(' + MARGINS.left + ',' + (VIS_HEIGHT + MARGINS.top) + ')')
             .call(d3.axisBottom(X_SCALE2).ticks(3))
             .selectAll('text')
@@ -517,12 +511,24 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr('font-size', '10px')
             .attr('transform', 'rotate(-45)');
 
+        // create an area where plotting will not happen
+        const clip = FRAME2.append("defs").append("svg:clipPath")
+            .attr("id", "clip")
+            .append("svg:rect")
+            .attr("width", VIS_WIDTH )
+            .attr("height", VIS_HEIGHT )
+            .attr("x", MARGINS.right)
+            .attr("y",MARGINS.top);
+
+        FRAME2.append('g')
+            .attr("clip-path", "url(#clip)")
+
         // making a o- plot for total assets
         FRAME2.selectAll(".a-circle")
             .data(filteredData)
             .enter()
             .append("circle")
-            .attr("class", "a-circle")
+            .attr("class", "at")
             //.transition().duration(1000)
             .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
             .attr("cy", d => Y_SCALE2(d.at) + MARGINS.top)
@@ -545,7 +551,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .data(filteredData)
             .enter()
             .append("circle")
-            .attr("class", "l-circle")
+            .attr("class", "lt")
             .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
             .attr("cy", d => Y_SCALE2(d.lt) + MARGINS.top)
             .attr("r", 5)
@@ -567,7 +573,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .data(filteredData)
             .enter()
             .append("circle")
-            .attr("class", "e-circle")
+            .attr("class", "teq")
             .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
             .attr("cy", d => Y_SCALE2(d.teq) + MARGINS.top)
             .attr("r", 5)
@@ -606,8 +612,18 @@ d3.csv('data/revdata.csv').then((data) => {
                 .attr("text-anchor", "left")
                 .style("alignment-baseline", "middle")
                 .style("font-size","12px");
+
+        // initialize brush
+        let brush = d3.brushX()                 
+            .extent( [ [MARGINS.right,MARGINS.top], [VIS_WIDTH + MARGINS.right,VIS_HEIGHT+MARGINS.top] ] )
+            .on("end", brushUpdate);
+
+        FRAME2.append("g")
+            .attr("class", "brush")
+            .call(brush);
     }    
 
+    
     
     // defaults
     updateLine('AAPL');
@@ -615,8 +631,30 @@ d3.csv('data/revdata.csv').then((data) => {
             .filter(d => d.data.tic === 'AAPL')
             .style("opacity", 1);
     selectedBars = { tic: 'AAPL' };
-
-    // manually changing the id, may not be best
     document.getElementById('tic-title').innerHTML = 'AAPL Time-Series';
+
+    // for brush functionality
+    let idleTimeout
+    function idled() { idleTimeout = null; }
+
+    function brushUpdate() {
+        // checking for an event
+        if (!d3.event || !d3.event.selection) return;
+
+        let extent = d3.event.selection
+
+        if(!extent){
+            if (!idleTimeout) return idleTimeout = setTimeout(idled, 350);
+            X_SCALE2.domain(years)
+          }else{
+            X_SCALE2.domain([ X_SCALE2.invert(extent[0]), X_SCALE2.invert(extent[1]) ])
+            scatter.select(".brush").call(brush.move, null) 
+          };
+
+        xAxis.transition().duration(1000).call(d3.axisBottom(X_SCALE2));
+        FRAME2.selectAll("circle")
+            .transition().duration(1000)
+            .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25);
+    }
 
 });
