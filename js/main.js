@@ -68,12 +68,19 @@ d3.csv('data/revdata.csv').then((data) => {
         .data([...all_tickers])
         .enter()
         .append('label')
-        .html(d => d)
-        .append('input')
-            .attr('type', 'checkbox')
-            .attr('class', 'company_cb')
-            .attr('value', d => d)
-            .attr('checked', 'checked')
+        .each(function(){
+                d3.select(this)
+                    .append('input')
+                    .attr('type', 'checkbox')
+                    .attr('class', 'company_cb')
+                    .attr('value', d => d)
+                    .attr('checked', 'checked');
+
+                d3.select(this)
+                    .append('span')
+                    .html(d => d)
+                    .append("br");
+            });
 
 
     // Initialize first year to render site with
@@ -648,7 +655,7 @@ d3.csv('data/revdata.csv').then((data) => {
             //     X_SCALE2.domain(years)
             // }else{
             //     X_SCALE2.domain([ X_SCALE2.invert(extent[0]), X_SCALE2.invert(extent[1]) ])
-            //     FRAME2.select(".brush").call(brush.move, null) 
+            //     FRAME2.select(".brush").call(brush.move, null)
             // };
 
             // console.log(X_SCALE2.domain())
@@ -661,12 +668,12 @@ d3.csv('data/revdata.csv').then((data) => {
                 const xPosition = X_SCALE2(d.x);
                 return xPosition >= selection[0] && xPosition <= selection[1];
               });
-              
+
               // Change the x scale based on the selection
               const newXScale = d3.scaleLinear()
                 .domain([X_SCALE2.invert(selection[0]), X_SCALE2.invert(selection[1])])
                 .range([0, width]);
-              
+
               // Replot the points with the new x scale
               points.attr("cx", d => newXScale(d.x))
     
