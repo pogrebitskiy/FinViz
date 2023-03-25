@@ -505,7 +505,7 @@ d3.csv('data/revdata.csv').then((data) => {
         // initialize brush
          const brush = d3.brushX()                 
              .extent( [ [MARGINS.right,MARGINS.top], [VIS_WIDTH + MARGINS.right,VIS_HEIGHT+MARGINS.top] ] )
-        //     .on("end", brushUpdate);
+             //.on("end", brushUpdate);
 
         // add y axis
         FRAME2.append('g')
@@ -540,7 +540,6 @@ d3.csv('data/revdata.csv').then((data) => {
             .enter()
             .append("circle")
             .attr("class", "at")
-            //.transition().duration(1000)
             .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
             .attr("cy", d => Y_SCALE2(d.at) + MARGINS.top)
             .attr("r", 5)
@@ -636,24 +635,40 @@ d3.csv('data/revdata.csv').then((data) => {
             // checking for an event
             if (!e || !e.selection) return;
 
-            X_SCALE2.invert = function(x) {
-                return this.domain()[0] + (x - this.range()[0]) / (this.range()[1] - this.range()[0]) * (this.domain()[1] - this.domain()[0]);
-                };
-
             let extent = e.selection
             console.log(extent);
-            if(!extent){
-                if (!idleTimeout) return idleTimeout = setTimeout(idled, 350);
-                X_SCALE2.domain(years)
-            }else{
-                X_SCALE2.domain([ X_SCALE2.invert(extent[0]), X_SCALE2.invert(extent[1]) ])
-                FRAME2.select(".brush").call(brush.move, null) 
-            };
-            console.log(X_SCALE2.domain())
-            xAxis.transition().duration(1000).call(d3.axisBottom(X_SCALE2));
-            FRAME2.selectAll("circle")
-                .transition().duration(1000)
-                .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25);
+
+            // X_SCALE2.invert = function(x) {
+            //     return this.domain()[0] + (x - this.range()[0]) / (this.range()[1] - this.range()[0]) * (this.domain()[1] - this.domain()[0]);
+            //     };
+
+            
+            // if(!extent){
+            //     if (!idleTimeout) return idleTimeout = setTimeout(idled, 350);
+            //     X_SCALE2.domain(years)
+            // }else{
+            //     X_SCALE2.domain([ X_SCALE2.invert(extent[0]), X_SCALE2.invert(extent[1]) ])
+            //     FRAME2.select(".brush").call(brush.move, null) 
+            // };
+
+            // console.log(X_SCALE2.domain())
+            // xAxis.transition().duration(1000).call(d3.axisBottom(X_SCALE2));
+            // FRAME2.selectAll("circle")
+            //     .transition().duration(1000)
+            //     .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25);
+
+            const selectedData = data.filter(d => {
+                const xPosition = X_SCALE2(d.x);
+                return xPosition >= selection[0] && xPosition <= selection[1];
+              });
+              
+              // Change the x scale based on the selection
+              const newXScale = d3.scaleLinear()
+                .domain([X_SCALE2.invert(selection[0]), X_SCALE2.invert(selection[1])])
+                .range([0, width]);
+              
+              // Replot the points with the new x scale
+              points.attr("cx", d => newXScale(d.x))
     
         
         }
