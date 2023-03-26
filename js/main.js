@@ -255,6 +255,7 @@ d3.csv('data/revdata.csv').then((data) => {
         const eq_subgroups = ['plot_ceq', 'plot_pstk', 'plot_mibn']
 
         // Create color map and bar stack series
+        
         const asset_color = d3.scaleOrdinal()
             .domain(asset_subgroups)
             .range(['#00a9ff', '#51b5ff', '#84c8ff', '#b4e0ff', '#ceefff', '#ddf9ff']);
@@ -389,6 +390,7 @@ d3.csv('data/revdata.csv').then((data) => {
         updateLine(d.data.tic);
         d3.select("#tic-title")
         .text(d.data.tic + " Time-Series");
+        document.getElementById('selectAccounts').value = 'All';
     }
 
     // tooltip functionality on different situations
@@ -425,56 +427,17 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // Frame 2: Time Series Viz
 
+    // for plotting different account breakdowns
+    d3.select("#selectAccounts")
+      .selectAll("option")
+      .data(['All','Assets','Liabilities','Equities'])
+      .enter()
+      .append("option")
+      .text(d => d);
+
     // finding the unique years in the data
     const years = Array.from(new Set(data.map(d => d.fyear)));
-
-    // creating scales
-    let X_SCALE2 = d3.scaleBand()
-        .domain(years)
-        .range([0, VIS_WIDTH]);
-
-    // finding max assets
-    let Y_MAX2 = d3.max(data, (d) => {
-        return (Math.max(d.at) * 1.2)
-    });
-
-    let Y_SCALE2 = d3.scaleLinear()
-        .domain([0, Y_MAX2])
-        .range([VIS_HEIGHT, 0]);
-
-    // add y axis
-    FRAME2.append('g')
-        .attr('transform', 'translate(' + MARGINS.top + ',' + MARGINS.left + ')')
-        .call(d3.axisLeft(Y_SCALE2).ticks(10))
-        .attr('font-size', '10px');
-
-    // add x axis
-    let xAxis = FRAME2.append('g')
-        .attr('transform', 'translate(' + MARGINS.left + ',' + (VIS_HEIGHT + MARGINS.top) + ')')
-        .call(d3.axisBottom(X_SCALE2).ticks(3))
-        .selectAll('text')
-        .style('text-anchor', 'end')
-        .attr('font-size', '10px')
-        .attr('transform', 'rotate(-45)');
-
-    // y axis label
-    FRAME2.append('text')
-        .attr('y', 25)
-        .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
-        .style('text-anchor', 'middle')
-        .text('Thousands of Dollars')
-        .attr('font-size', '12px')
-        .attr('transform', 'rotate(-90)');
-
-    // x axis label
-    FRAME2.append('text')
-        .attr('x', VIS_WIDTH/2 + MARGINS.left)
-        .attr('y', FRAME_HEIGHT - 20)
-        .style('text-anchor', 'middle')
-        .text('Year')
-        .attr('font-size', '12px');
-
-     
+    
 
     // line plot update function
     function updateLine(tic) {    
@@ -509,11 +472,6 @@ d3.csv('data/revdata.csv').then((data) => {
             .domain(years)
             .range([0, VIS_WIDTH]);
 
-        // initialize brush
-         const brush = d3.brushX()                 
-             .extent( [ [MARGINS.right,MARGINS.top], [VIS_WIDTH + MARGINS.right,VIS_HEIGHT+MARGINS.top] ] )
-             //.on("end", brushUpdate);
-
         // add y axis
         FRAME2.append('g')
             .attr('transform', 'translate(' + MARGINS.top + ',' + MARGINS.left + ')')
@@ -521,7 +479,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr('font-size', '10px');
 
         // add x axis
-        xAxis = FRAME2.append('g')
+        FRAME2.append('g')
             .attr('transform', 'translate(' + MARGINS.left + ',' + (VIS_HEIGHT + MARGINS.top) + ')')
             .call(d3.axisBottom(X_SCALE2).ticks(3))
             .selectAll('text')
@@ -629,60 +587,8 @@ d3.csv('data/revdata.csv').then((data) => {
                 .attr("text-anchor", "left")
                 .style("alignment-baseline", "middle")
                 .style("font-size","12px");
-        
-        FRAME2.append("g")
-                .attr("class", "brush")
-                .call(brush); 
-
-        // for brush functionality
-        let idleTimeout
-        function idled() { idleTimeout = null; }
-
-        function brushUpdate(e) {
-            // checking for an event
-            if (!e || !e.selection) return;
-
-            let extent = e.selection
-            console.log(extent);
-
-            // X_SCALE2.invert = function(x) {
-            //     return this.domain()[0] + (x - this.range()[0]) / (this.range()[1] - this.range()[0]) * (this.domain()[1] - this.domain()[0]);
-            //     };
-
-            
-            // if(!extent){
-            //     if (!idleTimeout) return idleTimeout = setTimeout(idled, 350);
-            //     X_SCALE2.domain(years)
-            // }else{
-            //     X_SCALE2.domain([ X_SCALE2.invert(extent[0]), X_SCALE2.invert(extent[1]) ])
-            //     FRAME2.select(".brush").call(brush.move, null)
-            // };
-
-            // console.log(X_SCALE2.domain())
-            // xAxis.transition().duration(1000).call(d3.axisBottom(X_SCALE2));
-            // FRAME2.selectAll("circle")
-            //     .transition().duration(1000)
-            //     .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25);
-
-            const selectedData = data.filter(d => {
-                const xPosition = X_SCALE2(d.x);
-                return xPosition >= selection[0] && xPosition <= selection[1];
-              });
-
-              // Change the x scale based on the selection
-              const newXScale = d3.scaleLinear()
-                .domain([X_SCALE2.invert(selection[0]), X_SCALE2.invert(selection[1])])
-                .range([0, width]);
-
-              // Replot the points with the new x scale
-              points.attr("cx", d => newXScale(d.x))
-    
-        
-        }
     }    
 
-    
-    
     // defaults
     updateLine('AAPL');
     FRAME1.selectAll("rect")
@@ -690,4 +596,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .style("opacity", 1);
     selectedBars = { tic: 'AAPL' };
     document.getElementById('tic-title').innerHTML = 'AAPL Time-Series';
+
+    let cur_account = d3.select("#selectAccounts").node().value;
+    d3.select('#selectAccounts').on('change', updateLine(cur_tic));
 });
