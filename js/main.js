@@ -389,8 +389,7 @@ d3.csv('data/revdata.csv').then((data) => {
 
         updateLine(d.data.tic);
         d3.select("#tic-title")
-        .text(d.data.tic + " Time-Series");
-        document.getElementById('selectAccounts').value = 'All';
+            .text(d.data.tic + " Time-Series");
     }
 
     // tooltip functionality on different situations
@@ -428,11 +427,12 @@ d3.csv('data/revdata.csv').then((data) => {
     // Frame 2: Time Series Viz
 
     let accountOptions = [
-        {label: 'All', value: ['at', 'lt', 'teq']},
-        {label: 'Assets', value: ['act', 'ppent', 'ivaeq', 'ivao', 'intan', 'ao', 'at']},
-        {label: 'Liabilities', value: ['lct', 'txditc', 'lo', 'dltt', 'lt']},
-        {label: 'Equities', value: ['ceq', 'pstk', 'mibn', 'teq']}
+        {label: 'All', value: Array(['at', 'lt', 'teq'])},
+        {label: 'Assets', value: Array(['act', 'ppent', 'ivaeq', 'ivao', 'intan', 'ao', 'at'])},
+        {label: 'Liabilities', value: Array(['lct', 'txditc', 'lo', 'dltt', 'lt'])},
+        {label: 'Equities', value: Array(['ceq', 'pstk', 'mibn', 'teq'])}
     ]
+    
     // for plotting different account breakdowns
     d3.select("#selectAccounts")
         .selectAll("option")
@@ -586,6 +586,8 @@ d3.csv('data/revdata.csv').then((data) => {
     }    
 
     // defaults
+    let selectedValue = "All";
+
     updateLine('AAPL');
     FRAME1.selectAll("rect")
             .filter(d => d.data.tic === 'AAPL')
@@ -593,6 +595,11 @@ d3.csv('data/revdata.csv').then((data) => {
     selectedBars = { tic: 'AAPL' };
     document.getElementById('tic-title').innerHTML = 'AAPL Time-Series';
 
-    let cur_account = d3.select("#selectAccounts").node().value;
     d3.select('#selectAccounts').on('change', updateLine(cur_tic));
+
+    // event listener on the dropdown element
+    d3.select("#selectAccounts")
+        .on("change", function() {
+            selectedValue = d3.select(this).property("selectedOptions")[0].value;
+    });
 });
