@@ -427,13 +427,20 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // Frame 2: Time Series Viz
 
+    let accountOptions = [
+        {label: 'All', value: ['at', 'lt', 'teq']},
+        {label: 'Assets', value: ['act', 'ppent', 'ivaeq', 'ivao', 'intan', 'ao', 'at']},
+        {label: 'Liabilities', value: ['lct', 'txditc', 'lo', 'dltt', 'lt']},
+        {label: 'Equities', value: ['ceq', 'pstk', 'mibn', 'teq']}
+    ]
     // for plotting different account breakdowns
     d3.select("#selectAccounts")
-      .selectAll("option")
-      .data(['All','Assets','Liabilities','Equities'])
-      .enter()
-      .append("option")
-      .text(d => d);
+        .selectAll("option")
+        .data(accountOptions)
+        .enter()
+        .append("option")
+        .text(d => d.label)
+        .attr("value", d => d.value);
 
     // finding the unique years in the data
     const years = Array.from(new Set(data.map(d => d.fyear)));
@@ -486,19 +493,8 @@ d3.csv('data/revdata.csv').then((data) => {
             .style('text-anchor', 'end')
             .attr('font-size', '10px')
             .attr('transform', 'rotate(-45)');
-
-        // create an area where plotting will not happen
-        const clip = FRAME2.append("defs").append("svg:clipPath")
-            .attr("id", "clip")
-            .append("svg:rect")
-            .attr("width", VIS_WIDTH )
-            .attr("height", VIS_HEIGHT )
-            .attr("x", MARGINS.right)
-            .attr("y",MARGINS.top);
-
-        FRAME2.append('g')
-            .attr("clip-path", "url(#clip)")
-
+        
+        
         // making a o- plot for total assets
         FRAME2.selectAll(".a-circle")
             .data(filteredData)
