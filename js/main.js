@@ -45,7 +45,10 @@ d3.csv('data/revdata.csv').then((data) => {
         dltt: 'Total Long-Term Debt',
         ceq: 'Total Common/Ordinary Equity',
         pstk: 'Total Preferred/Preference Stock (Capital)',
-        mibn: 'Nonredeemable Noncontrolling Interest'
+        mibn: 'Nonredeemable Noncontrolling Interest',
+        at: 'Total Assets',
+        lt: 'Total Liabilities',
+        teq: 'Total Equities'
     };
 
     // will be used for legends
@@ -182,12 +185,35 @@ d3.csv('data/revdata.csv').then((data) => {
         .text('Ticker')
         .attr('font-size', '12px');
 
-
-
     // Create svg container for each type of bar: asset, liab, eq
     g_assets = FRAME1.append('g').classed('asset-bars', true);
     g_liab = FRAME1.append('g').classed('liability-bars', true);
     g_eq = FRAME1.append('g').classed('equity-bars', true);
+
+    // Specify desired columns
+    const all_subgroups = ['plot_at', 'plot_lt', 'plot_teq']
+    const asset_subgroups = ['plot_act', 'plot_ppent', 'plot_ivaeq', 'plot_ivao', 'plot_intan', 'plot_ao'];
+    const liab_subgroups = ['plot_lct', 'plot_txditc', 'plot_lo', 'plot_dltt']
+    const eq_subgroups = ['plot_ceq', 'plot_pstk', 'plot_mibn']
+
+    // combining all vars
+    const all_vars_prefix = [...all_subgroups, ...asset_subgroups, ...liab_subgroups, ...eq_subgroups];
+
+    const all_vars = all_vars_prefix.map(varName => varName.replace('plot_', ''));
+
+    // creating color scales
+    const all_color = d3.scaleOrdinal()
+            .domain(all_subgroups)
+            .range(['blue', 'red', 'green']);
+    const asset_color = d3.scaleOrdinal()
+            .domain(asset_subgroups)
+            .range(['#00a9ff', '#51b5ff', '#84c8ff', '#b4e0ff', '#ceefff', '#ddf9ff']);
+    const liab_color = d3.scaleOrdinal()
+            .domain(liab_subgroups)
+            .range(['#ff0000', '#ff3921', '#ff6044', '#ff8870']);
+    const eq_color = d3.scaleOrdinal()
+            .domain(eq_subgroups)
+            .range(['#54ff00', '#afff8b', '#d7ffc2']);
 
     // Initialize viz before anything selected
     updatePlot();
@@ -249,32 +275,18 @@ d3.csv('data/revdata.csv').then((data) => {
             .text('Ticker')
             .attr('font-size', '12px');
 
-        // Specify desired columns
-        const asset_subgroups = ['plot_act', 'plot_ppent', 'plot_ivaeq', 'plot_ivao', 'plot_intan', 'plot_ao'];
-        const liab_subgroups = ['plot_lct', 'plot_txditc', 'plot_lo', 'plot_dltt']
-        const eq_subgroups = ['plot_ceq', 'plot_pstk', 'plot_mibn']
 
         // Create color map and bar stack series
-        
-        const asset_color = d3.scaleOrdinal()
-            .domain(asset_subgroups)
-            .range(['#00a9ff', '#51b5ff', '#84c8ff', '#b4e0ff', '#ceefff', '#ddf9ff']);
         const asset_stack = d3.stack()
             .keys(asset_subgroups)
             (filtered_data.filter(d => d.fyear === cur_year));
 
-        // Create color map and bar stack series
-        const liab_color = d3.scaleOrdinal()
-            .domain(liab_subgroups)
-            .range(['#ff0000', '#ff3921', '#ff6044', '#ff8870']);
+        // Create color map and bar stack series        
         const liab_stack = d3.stack()
             .keys(liab_subgroups)
             (filtered_data.filter(d => d.fyear === cur_year));
 
         // Create color map and bar stack series
-        const eq_color = d3.scaleOrdinal()
-            .domain(eq_subgroups)
-            .range(['#54ff00', '#afff8b', '#d7ffc2']);
         const eq_stack = d3.stack()
             .keys(eq_subgroups)
             (filtered_data.filter(d => d.fyear === cur_year));
@@ -425,12 +437,11 @@ d3.csv('data/revdata.csv').then((data) => {
         
 
     // Frame 2: Time Series Viz
-
     let accountOptions = [
-        {label: 'All', value: Array(['at', 'lt', 'teq'])},
-        {label: 'Assets', value: Array(['act', 'ppent', 'ivaeq', 'ivao', 'intan', 'ao', 'at'])},
-        {label: 'Liabilities', value: Array(['lct', 'txditc', 'lo', 'dltt', 'lt'])},
-        {label: 'Equities', value: Array(['ceq', 'pstk', 'mibn', 'teq'])}
+        {label: 'All', value: ['lt', 'teq']},
+        {label: 'Assets', value: ['act', 'ppent', 'ivaeq', 'ivao', 'intan', 'ao']},
+        {label: 'Liabilities', value: ['lct', 'txditc', 'lo', 'dltt']},
+        {label: 'Equities', value: ['ceq', 'pstk', 'mibn']}
     ]
     
     // for plotting different account breakdowns
@@ -450,8 +461,7 @@ d3.csv('data/revdata.csv').then((data) => {
     function updateLine(tic) {    
         cur_tic = tic
 
-        // Clear the frame of all lines as well as all circles
-        FRAME2.selectAll("circle").remove();
+        // Clear the frame of all paths in the stacked area plot
         FRAME2.selectAll("path").remove();
 
         // get rid of all axis to recalc the y axis
@@ -459,6 +469,7 @@ d3.csv('data/revdata.csv').then((data) => {
 
         // Plots the new bars
         plot_lines();
+        tooltips2();
         }
     
     function plot_lines() {
@@ -494,99 +505,88 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr('font-size', '10px')
             .attr('transform', 'rotate(-45)');
         
-        
-        // making a o- plot for total assets
-        FRAME2.selectAll(".a-circle")
-            .data(filteredData)
+        split = selectedValue.split(',');
+
+        const stack = d3.stack()
+            .keys(split)
+
+        // generate a stack from the filtered data
+        const stackData = stack(filteredData);
+
+        // create an area generator
+        const area = d3.area()
+            .x(d => X_SCALE2(parseInt(d.data.fyear)) + MARGINS.right + 25)
+            .y0(d => Y_SCALE2(d[0]) + MARGINS.top)
+            .y1(d => Y_SCALE2(d[1]) + MARGINS.top);
+
+        // getting the color scale based of the keys
+        function getAreaColor(d, all_subgroups, asset_subgroups, liab_subgroups, all_color, asset_color, liab_color, eq_color) {
+                let color;
+                if (all_subgroups.indexOf('plot_' + d.key) !== -1) {
+                  color = all_color('plot_' + d.key);
+                } else if (asset_subgroups.indexOf('plot_' + d.key) !== -1) {
+                  color = asset_color('plot_' + d.key);
+                } else if (liab_subgroups.indexOf('plot_' + d.key) !== -1) {
+                  color = liab_color('plot_' + d.key); 
+                } else {
+                  color = eq_color('plot_' + d.key);
+                }
+                return color;
+              }
+
+        // plot the stacked areas
+        FRAME2.selectAll(".area")
+            .data(stackData)
             .enter()
-            .append("circle")
-            .attr("class", "at")
-            .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-            .attr("cy", d => Y_SCALE2(d.at) + MARGINS.top)
-            .attr("r", 5)
-            .style("fill", "blue")
-            .append("title")
-            .text(d => "Value: $" + formatNumber(d.at * 1000) + " Year: " + d.fyear);
-        
-        FRAME2.append("path")
-            .datum(filteredData)
-            .attr("class", "line")
-            .attr("d", d3.line()
-                .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-                .y(d => Y_SCALE2(d.at) + MARGINS.top))
-            .style("stroke", "blue")
-            .style("fill", "none");
-
-        // making a o- plot for total liabilities
-        FRAME2.selectAll(".l-circle")
-            .data(filteredData)
-            .enter()
-            .append("circle")
-            .attr("class", "lt")
-            .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-            .attr("cy", d => Y_SCALE2(d.lt) + MARGINS.top)
-            .attr("r", 5)
-            .style("fill", "red")
-            .append("title") 
-            .text(d => "Value: $" + formatNumber(d.lt * 1000) + " Year: " + d.fyear);
-
-        FRAME2.append("path")
-            .datum(filteredData)
-            .attr("class", "line")
-            .attr("d", d3.line()
-                .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-                .y(d => Y_SCALE2(d.lt) + MARGINS.top))
-            .style("stroke", "red")
-            .style("fill", "none");
-
-        // making a o- plot for total equity
-        FRAME2.selectAll(".e-circle")
-            .data(filteredData)
-            .enter()
-            .append("circle")
-            .attr("class", "teq")
-            .attr("cx", d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-            .attr("cy", d => Y_SCALE2(d.teq) + MARGINS.top)
-            .attr("r", 5)
-            .style("fill", "green")
-            .append("title") 
-            .text(d => "Value: $" + formatNumber(d.teq * 1000) + " Year: " + d.fyear);
-        
-        FRAME2.append("path")
-            .datum(filteredData)
-            .attr("class", "line")
-            .attr("d", d3.line()
-                .x(d => X_SCALE2(parseInt(d.fyear)) + MARGINS.right + 25)
-                .y(d => Y_SCALE2(d.teq) + MARGINS.top))
-            .style("stroke", "green")
-            .style("fill", "none");        
-
-        // dot for legend
-        FRAME2.selectAll("mydots")
-            .data(vis2_keys)
-            .enter()
-            .append("circle")
-            .attr("cx", MARGINS.right + 20)
-            .attr("cy", function(d,i){ return MARGINS.left + i*25}) 
-            .attr("r", 4)
-            .style("fill", function(d,i){ return key_colors[i]});
-
-        // text for legend
-        FRAME2.selectAll("mylabels")
-                .data(vis2_keys)
-                .enter()
-                .append("text")
-                .attr("x", MARGINS.right + 25)
-                .attr("y", function(d,i){ return MARGINS.left + i*25})
-                .style("fill", function(d,i){ return key_colors[i]})
-                .text(function(d){ return d})
-                .attr("text-anchor", "left")
-                .style("alignment-baseline", "middle")
-                .style("font-size","12px");
+            .append("path")
+            .attr("class", "area")
+            .style("fill", d => getAreaColor(d, all_subgroups, asset_subgroups, liab_subgroups, all_color, asset_color, liab_color, eq_color))
+            .attr('d', area);
     }    
 
+    function tooltips2() {
+        // adding a tooltip2 for hover functionality
+        const TOOLTIP2 = d3.select("#vis2")
+            .append("div")
+            .style("opacity", 0)
+            .attr("class", "tooltip")
+            .style("background-color", "white")
+            .style("border", "solid")
+            .style("border-width", "2px")
+            .style("border-radius", "5px")
+            .style("padding", "5px");
+
+        // handling the mouse entering the space
+        function handleMouseover2(event, d) {
+            TOOLTIP2.style("opacity", 1);
+            d3.select(this)
+            .style("opacity", 1);
+        }
+
+        // handing a mouse movement
+        function handleMousemove2(event, d) {
+            let true_key = d.key;
+
+            // showing the tooltip with proper information
+            TOOLTIP2.html("<b>" + DEFINITIONS[true_key] + "</b>")
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 25) + "px");
+        }
+
+        // handling the mouse exiting
+        function handleMouseleave2(event, d) {
+            TOOLTIP2.style("opacity", 0)
+        }
+
+        // tooltip functionality on different situations
+        FRAME2.selectAll(".area")
+            .on("mouseover", handleMouseover2)
+            .on("mousemove", handleMousemove2)
+            .on("mouseleave", handleMouseleave2)
+    }
+
     // defaults
-    let selectedValue = "All";
+    let selectedValue = 'lt,teq';
 
     updateLine('AAPL');
     FRAME1.selectAll("rect")
@@ -595,11 +595,10 @@ d3.csv('data/revdata.csv').then((data) => {
     selectedBars = { tic: 'AAPL' };
     document.getElementById('tic-title').innerHTML = 'AAPL Time-Series';
 
-    d3.select('#selectAccounts').on('change', updateLine(cur_tic));
-
     // event listener on the dropdown element
     d3.select("#selectAccounts")
         .on("change", function() {
             selectedValue = d3.select(this).property("selectedOptions")[0].value;
+            updateLine(cur_tic)
     });
 });
