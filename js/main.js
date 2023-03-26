@@ -90,8 +90,8 @@ d3.csv('data/revdata.csv').then((data) => {
     let cur_year = d3.select("#selectYear").node().value;
 
     let cur_companies = d3.selectAll('.company_cb:checked')
-                        .nodes()
-                        .map(node => node.value);
+                            .nodes()
+                            .map(node => node.value);
 
     // Add event listener to plot, changes with dropdown changes
     d3.select('#selectYear').on('change', updatePlot);
@@ -102,8 +102,8 @@ d3.csv('data/revdata.csv').then((data) => {
         cur_year = d3.select("#selectYear").node().value;
 
         cur_companies = d3.selectAll('.company_cb:checked')
-                        .nodes()
-                        .map(node => node.value);
+                            .nodes()
+                            .map(node => node.value);
 
         // Clear the frame of all bars
         FRAME1.selectAll("rect").remove();
@@ -137,9 +137,9 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // creating scales
     const X_SCALE = d3.scaleBand()
-    .domain(groups)
-    .range([0, VIS_WIDTH])
-    .padding(PADDING);
+        .domain(groups)
+        .range([0, VIS_WIDTH])
+        .padding(PADDING);
 
     // max y value
     const Y_MAX = d3.max(data, (d) => {
@@ -227,9 +227,9 @@ d3.csv('data/revdata.csv').then((data) => {
 
         // creating scales
         const X_SCALE = d3.scaleBand()
-        .domain(groups)
-        .range([0, VIS_WIDTH])
-        .padding(PADDING);
+            .domain(groups)
+            .range([0, VIS_WIDTH])
+            .padding(PADDING);
 
         // max y value
         const Y_MAX = d3.max(filtered_data, (d) => {
@@ -360,7 +360,7 @@ d3.csv('data/revdata.csv').then((data) => {
     function handleMouseover(event, d) {
         TOOLTIP.style("opacity", 1);
         d3.select(this)
-        .style("opacity", 1);
+            .style("opacity", 1);
     }
 
     // handing a mouse movement
@@ -479,7 +479,7 @@ d3.csv('data/revdata.csv').then((data) => {
           });
         
         Y_MAX2 = d3.max(filteredData, (d) => {
-            return (Math.max(d.at) * 1.2)
+            return (Math.max(d.at))
         });
 
         Y_SCALE2 = d3.scaleLinear()
@@ -541,7 +541,8 @@ d3.csv('data/revdata.csv').then((data) => {
             .append("path")
             .attr("class", "area")
             .style("fill", d => getAreaColor(d, all_subgroups, asset_subgroups, liab_subgroups, all_color, asset_color, liab_color, eq_color))
-            .attr('d', area);
+            .attr('d', area)
+            .style("opacity", 0.5);
     }    
 
     function tooltips2() {
@@ -560,7 +561,7 @@ d3.csv('data/revdata.csv').then((data) => {
         function handleMouseover2(event, d) {
             TOOLTIP2.style("opacity", 1);
             d3.select(this)
-            .style("opacity", 1);
+                .style("opacity", 1);
         }
 
         // handing a mouse movement
@@ -576,6 +577,8 @@ d3.csv('data/revdata.csv').then((data) => {
         // handling the mouse exiting
         function handleMouseleave2(event, d) {
             TOOLTIP2.style("opacity", 0)
+            d3.select(this)
+                .style("opacity", 0.5);
         }
 
         // tooltip functionality on different situations
