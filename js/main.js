@@ -372,8 +372,8 @@ d3.csv('data/revdata.csv').then((data) => {
         let true_key = key.replace("plot_", "");
 
         // showing the tooltip with proper information
-        TOOLTIP.html("<b>" + DEFINITIONS[true_key] + "</b><br/><i>" + d.data.conm + "</i><br/>Value: $" + formatNumber((d.data[true_key]*1000)) + 
-        "<br/>" + d3.format(".2f")(100 * d.data[true_key] / d.data.at) + "% of Total Assets ($" + formatNumber(d.data.at * 1000) + ")")
+        TOOLTIP.html("<b>" + DEFINITIONS[true_key] + "</b><br/><i>" + d.data.conm + "</i><br/>Value: $" + d3.format(".2f")(formatNumber((d.data[true_key]/1000))) + 
+        " Billion<br/>" + d3.format(".2f")(100 * d.data[true_key] / d.data.at) + "% of Total Assets ($" + d3.format(".2f")(formatNumber(d.data.at / 1000)) + " Billion)")
             .style("left", (event.pageX + 10) + "px")
             .style("top", (event.pageY - 50) + "px");
     }
@@ -401,7 +401,7 @@ d3.csv('data/revdata.csv').then((data) => {
 
         updateLine(d.data.tic);
         d3.select("#tic-title")
-            .text(d.data.tic + " Time-Series");
+            .text(d.data.tic + " Stacked Area Time-Series");
     }
 
     // tooltip functionality on different situations
@@ -453,6 +453,23 @@ d3.csv('data/revdata.csv').then((data) => {
         .text(d => d.label)
         .attr("value", d => d.value);
 
+    // x axis label
+    FRAME2.append('text')
+        .attr('x', VIS_WIDTH/2 + MARGINS.left)
+        .attr('y', FRAME_HEIGHT - 20)
+        .style('text-anchor', 'middle')
+        .text('Year')
+        .attr('font-size', '12px');
+
+    // y axis label
+    FRAME2.append('text')
+        .attr('y', 25)
+        .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
+        .style('text-anchor', 'middle')
+        .text('Value in Billions of Dollars')
+        .attr('font-size', '12px')
+        .attr('transform', 'rotate(-90)')
+
     // finding the unique years in the data
     const years = Array.from(new Set(data.map(d => d.fyear)));
     
@@ -479,7 +496,7 @@ d3.csv('data/revdata.csv').then((data) => {
           });
         
         Y_MAX2 = d3.max(filteredData, (d) => {
-            return (Math.max(d.at))
+            return (Math.max(1.05 * d.at / 1000))
         });
 
         Y_SCALE2 = d3.scaleLinear()
@@ -493,13 +510,13 @@ d3.csv('data/revdata.csv').then((data) => {
         // add y axis
         FRAME2.append('g')
             .attr('transform', 'translate(' + MARGINS.top + ',' + MARGINS.left + ')')
-            .call(d3.axisLeft(Y_SCALE2).ticks(10))
+            .call(d3.axisLeft(Y_SCALE2).ticks(10).tickPadding(0))
             .attr('font-size', '10px');
 
         // add x axis
         FRAME2.append('g')
             .attr('transform', 'translate(' + MARGINS.left + ',' + (VIS_HEIGHT + MARGINS.top) + ')')
-            .call(d3.axisBottom(X_SCALE2).ticks(3))
+            .call(d3.axisBottom(X_SCALE2).ticks(3).tickPadding(0))
             .selectAll('text')
             .style('text-anchor', 'end')
             .attr('font-size', '10px')
@@ -515,21 +532,21 @@ d3.csv('data/revdata.csv').then((data) => {
 
         // create an area generator
         const area = d3.area()
-            .x(d => X_SCALE2(parseInt(d.data.fyear)) + MARGINS.right + 25)
-            .y0(d => Y_SCALE2(d[0]) + MARGINS.top)
-            .y1(d => Y_SCALE2(d[1]) + MARGINS.top);
+            .x(d => X_SCALE2(parseInt(d.data.fyear)) + MARGINS.right + 23)
+            .y0(d => Y_SCALE2(d[0] / 1000) + MARGINS.top)
+            .y1(d => Y_SCALE2(d[1] / 1000) + MARGINS.top);
 
         // getting the color scale based of the keys
         function getAreaColor(d, all_subgroups, asset_subgroups, liab_subgroups, all_color, asset_color, liab_color, eq_color) {
                 let color;
                 if (all_subgroups.indexOf('plot_' + d.key) !== -1) {
-                  color = all_color('plot_' + d.key);
+                    color = all_color('plot_' + d.key);
                 } else if (asset_subgroups.indexOf('plot_' + d.key) !== -1) {
-                  color = asset_color('plot_' + d.key);
+                    color = asset_color('plot_' + d.key);
                 } else if (liab_subgroups.indexOf('plot_' + d.key) !== -1) {
-                  color = liab_color('plot_' + d.key); 
+                    color = liab_color('plot_' + d.key);
                 } else {
-                  color = eq_color('plot_' + d.key);
+                    color = eq_color('plot_' + d.key);
                 }
                 return color;
               }
@@ -543,6 +560,8 @@ d3.csv('data/revdata.csv').then((data) => {
             .style("fill", d => getAreaColor(d, all_subgroups, asset_subgroups, liab_subgroups, all_color, asset_color, liab_color, eq_color))
             .attr('d', area)
             .style("opacity", 0.5);
+        
+        
     }    
 
     function tooltips2() {
@@ -561,6 +580,8 @@ d3.csv('data/revdata.csv').then((data) => {
         function handleMouseover2(event, d) {
             TOOLTIP2.style("opacity", 1);
             d3.select(this)
+                .style("stroke", "black")
+                .style("stroke-width", 2)
                 .style("opacity", 1);
         }
 
@@ -578,7 +599,8 @@ d3.csv('data/revdata.csv').then((data) => {
         function handleMouseleave2(event, d) {
             TOOLTIP2.style("opacity", 0)
             d3.select(this)
-                .style("opacity", 0.5);
+                .style("opacity", 0.5)
+                .style("stroke", "none");
         }
 
         // tooltip functionality on different situations
@@ -596,7 +618,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .filter(d => d.data.tic === 'AAPL')
             .style("opacity", 1);
     selectedBars = { tic: 'AAPL' };
-    document.getElementById('tic-title').innerHTML = 'AAPL Time-Series';
+    document.getElementById('tic-title').innerHTML = 'AAPL Stacked Area Time-Series';
 
     // event listener on the dropdown element
     d3.select("#selectAccounts")
