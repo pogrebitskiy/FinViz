@@ -438,10 +438,10 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // Frame 2: Time Series Viz
     let accountOptions = [
-        {label: 'All', value: ['lt', 'teq']},
+        {label: 'Balance Sheet', value: ['lt', 'teq']},
         {label: 'Assets', value: ['act', 'ppent', 'ivaeq', 'ivao', 'intan', 'ao']},
         {label: 'Liabilities', value: ['lct', 'txditc', 'lo', 'dltt']},
-        {label: 'Equities', value: ['ceq', 'pstk', 'mibn']}
+        {label: "Stockholders' Equities", value: ['ceq', 'pstk', 'mibn']}
     ]
     
     // for plotting different account breakdowns

@@ -20,6 +20,9 @@ h1 {
     flex:50%;
 }
 
+.description {
+    max-width: 80%;
+  }
 
 .tooltip {
     position: absolute;
