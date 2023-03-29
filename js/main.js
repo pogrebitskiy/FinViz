@@ -56,8 +56,7 @@ d3.csv('data/revdata.csv').then((data) => {
     };
 
     // will be used for legends
-    const vis1_keys = ['Assets', 'Liabilities', "Stockholders' Equity"];
-    const vis2_keys = ['Total Assets', 'Total Liabilities', "Total Stockholders' Equity"];
+    const vis1_keys = ['Assets', 'Liabilities', "Equity"];
     const key_colors = ['blue', 'red', 'green'];
 
     // Populate dropdown with year choices
