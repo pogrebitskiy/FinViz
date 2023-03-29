@@ -100,15 +100,19 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // Add event listener to plot, changes with dropdown changes
     d3.select('#selectYear').on('change', updatePlot);
+    
 
     // Event listener to update plot with checkbox filtering
     d3.select('#selectCompanies').on('change', updatePlot);
+    
 
     // Callback function to update viz1 when filtering and year selection are done
     function updatePlot() {
 
         // Find currently selected years and companies to filter with
         cur_year = d3.select("#selectYear").node().value;
+        document.getElementById('year-title').innerHTML = cur_year +' Balance Sheet Breakdown';
+
         cur_companies = d3.selectAll('.company_cb:checked')
                             .nodes()
                             .map(node => node.value);
@@ -641,6 +645,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .style("opacity", 1);
     selectedBars = { tic: 'AAPL' };
     document.getElementById('tic-title').innerHTML = 'AAPL Stacked Area Time-Series';
+    document.getElementById('year-title').innerHTML = '2010 Balance Sheet Breakdown';
 
     // event listener on the dropdown element
     d3.select("#selectAccounts")
