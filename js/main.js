@@ -69,7 +69,8 @@ d3.csv('data/revdata.csv').then((data) => {
       .text(d => d);
 
     // Get all tickers and populate checkbox options
-    let all_tickers = Array.from(new Set(data.map(d => d.tic)));
+    let all_tickers = Array.from(new Set(data.map(d => d.tic))).sort();
+    let INIT_CHECKED = ['AAPL', 'VZ', 'TGT', 'IBM', 'PFE', 'MSFT', 'NFLX']
     d3.select('#selectCompanies')
         .selectAll('label')
         .data([...all_tickers])
@@ -81,7 +82,13 @@ d3.csv('data/revdata.csv').then((data) => {
                     .attr('type', 'checkbox')
                     .attr('class', 'company_cb')
                     .attr('value', d => d)
-                    .attr('checked', 'checked');
+                    .attr('checked', (d) => {
+                        if (INIT_CHECKED.includes(d)){
+                            return 'checked';
+                        } else{
+                            return null;
+                        }
+                    });
 
                 d3.select(this)
                     .append('span')
