@@ -210,10 +210,6 @@ d3.csv('data/revdata.csv').then((data) => {
     const liab_subgroups = ['plot_lct', 'plot_txditc', 'plot_lo', 'plot_dltt']
     const eq_subgroups = ['plot_ceq', 'plot_pstk', 'plot_mibn']
 
-    // combining all vars
-    const all_vars_prefix = [...all_subgroups, ...asset_subgroups, ...liab_subgroups, ...eq_subgroups];
-
-    const all_vars = all_vars_prefix.map(varName => varName.replace('plot_', ''));
 
     // creating color scales for each set of groups
     const all_color = d3.scaleOrdinal()
