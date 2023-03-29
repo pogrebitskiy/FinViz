@@ -1,3 +1,4 @@
+// Init dimensions
 const FRAME_HEIGHT = 750;
 const FRAME_WIDTH = 750;
 const PADDING = 10;
@@ -6,18 +7,21 @@ const MARGINS = {left: 75,
                 top:75,
                 bottom:75};
 
+// Assign html div to frame
 const FRAME1 = d3.select('#vis1')
                 .append('svg')
                     .attr('height', FRAME_HEIGHT)
                     .attr('width', FRAME_WIDTH)
                     .attr('class', 'frame');
 
+// Assign html div to frame
 const FRAME2 = d3.select('#vis2')
                 .append('svg')
                     .attr('height', FRAME_HEIGHT)
                     .attr('width', FRAME_WIDTH)
                     .attr('class', 'frame');
 
+// Dimensions for ease of use
 const VIS_HEIGHT = FRAME_HEIGHT - MARGINS.top - MARGINS.bottom
 const VIS_WIDTH = FRAME_WIDTH - MARGINS.left - MARGINS.right
 
@@ -65,6 +69,7 @@ d3.csv('data/revdata.csv').then((data) => {
       .append("option")
       .text(d => d);
 
+    // Get all tickers and populate checkbox options
     let all_tickers = Array.from(new Set(data.map(d => d.tic)));
     d3.select('#selectCompanies')
         .selectAll('label')
@@ -89,6 +94,7 @@ d3.csv('data/revdata.csv').then((data) => {
     // Initialize first year to render site with
     let cur_year = d3.select("#selectYear").node().value;
 
+    // Track currently selected companies from checkboxes
     let cur_companies = d3.selectAll('.company_cb:checked')
                             .nodes()
                             .map(node => node.value);
@@ -96,11 +102,14 @@ d3.csv('data/revdata.csv').then((data) => {
     // Add event listener to plot, changes with dropdown changes
     d3.select('#selectYear').on('change', updatePlot);
 
+    // Event listener to update plot with checkbox filtering
     d3.select('#selectCompanies').on('change', updatePlot);
 
+    // Callback function to update viz1 when filtering and year selection are done
     function updatePlot() {
-        cur_year = d3.select("#selectYear").node().value;
 
+        // Find currently selected years and companies to filter with
+        cur_year = d3.select("#selectYear").node().value;
         cur_companies = d3.selectAll('.company_cb:checked')
                             .nodes()
                             .map(node => node.value);
@@ -113,10 +122,15 @@ d3.csv('data/revdata.csv').then((data) => {
         plot_bars();
         tooltips();
 
+        // This may seem repetitive but ensures that selected bars stay selected
+        // after any kinda of filtering or re-selection
+
+        // Increase opacity of bars that are clicked on
         FRAME1.selectAll("rect")
             .filter(d => d.data.tic === selectedBars.tic)
             .style("opacity", 1);
 
+        // Decrease opacity of bars not clicked on
         FRAME1.selectAll("rect")
             .filter(d => d.data.tic !== selectedBars.tic)
             .style("opacity", 0.4);
@@ -132,7 +146,7 @@ d3.csv('data/revdata.csv').then((data) => {
         return num.toLocaleString();
       }
 
-    //init tic value
+    // initial tic value to display
     selectedBars = { tic: 'AAPL' };
 
     // creating scales
@@ -201,7 +215,7 @@ d3.csv('data/revdata.csv').then((data) => {
 
     const all_vars = all_vars_prefix.map(varName => varName.replace('plot_', ''));
 
-    // creating color scales
+    // creating color scales for each set of groups
     const all_color = d3.scaleOrdinal()
             .domain(all_subgroups)
             .range(['blue', 'red', 'green']);
@@ -215,16 +229,19 @@ d3.csv('data/revdata.csv').then((data) => {
             .domain(eq_subgroups)
             .range(['#54ff00', '#afff8b', '#d7ffc2']);
 
-    // Initialize viz before anything selected
+    // Initialize viz before any selections or filtering
     updatePlot();
 
+    // Function to plot the bars on viz1 based on filters and selection (if any)
     function plot_bars() {
 
+        // Filter data down to only selected tickers
         let filtered_data = data.filter(d => cur_companies.includes(d.tic));
 
         // groups based off tic
         const groups = filtered_data.map(d => d.tic);
 
+        // Scaled needed to be re-initialized based on the changed data
         // creating scales
         const X_SCALE = d3.scaleBand()
             .domain(groups)
@@ -291,7 +308,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .keys(eq_subgroups)
             (filtered_data.filter(d => d.fyear === cur_year));
 
-
+        // Build svg components to store liability bars
         let liab_bars = g_liab
             .selectAll('g.series')
             .data(liab_stack)
@@ -299,6 +316,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .classed('series', true)
             .style('fill', (d) => liab_color(d.key))
 
+        // Fill bars into above spaces
         liab_bars.selectAll('rect')
             .data((d) => d)
             .join('rect')
@@ -308,7 +326,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom)
             .style("opacity", 0.4);
 
-        // Fill svg container with individual svgs
+        // Fill svg container with individual svgs for assets
         let asset_bars = g_assets
             .selectAll('g.series')
             .data(asset_stack)
@@ -316,6 +334,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .classed('series', true)
             .style('fill', (d) => asset_color(d.key));
 
+        // Append rectangles to each g container
         asset_bars.selectAll('rect')
             .data((d) => d)
             .join('rect')
@@ -325,7 +344,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr('y', (d) => Y_SCALE(d[1]) + MARGINS.bottom)
             .style("opacity", 0.4);
 
-
+        // Svg containers for equity bars
         let eq_bars = g_eq
             .selectAll('g.series')
             .data(eq_stack)
@@ -333,6 +352,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .classed('series', true)
             .style('fill', (d) => eq_color(d.key))
 
+        // Add rectangles to represent equity
         eq_bars.selectAll('rect')
             .data((d) => d)
             .join('rect')
@@ -368,7 +388,8 @@ d3.csv('data/revdata.csv').then((data) => {
         // will check the key where the val exists, but will have plot_ in front of it
         // 1 shows up as .99999 so we rounded to 6 decimal points when checking
         let key = Object.keys(d.data).find(k => d3.format(".6f")(parseFloat(d.data[k])) === d3.format(".6f")(d[1] - d[0]));
-        
+
+        // Rename key to account for data transformation
         let true_key = key.replace("plot_", "");
 
         // showing the tooltip with proper information
@@ -388,18 +409,24 @@ d3.csv('data/revdata.csv').then((data) => {
         }
     }
 
+    // Function to select individual bars to view their long term information
     function handleMouseclick(event, d) {
         selectedBars = { tic: d.data.tic };
+
         // Set the opacity of the clicked bars to 1 and update the selectedBars variable
         FRAME1.selectAll("rect")
             .filter(d => d.data.tic === selectedBars.tic)
             .style("opacity", 1);
 
+        // Every non-selected bar gets lower opacity to show distincition
         FRAME1.selectAll("rect")
             .filter(d => d.data.tic !== selectedBars.tic)
             .style("opacity", 0.4);
 
+        // Update long term plot
         updateLine(d.data.tic);
+
+        // Update viz title based on selected company
         d3.select("#tic-title")
             .text(d.data.tic + " Stacked Area Time-Series");
     }
@@ -484,7 +511,7 @@ d3.csv('data/revdata.csv').then((data) => {
         // get rid of all axis to recalc the y axis
         FRAME2.selectAll("g").remove();
 
-        // Plots the new bars
+        // Plots the new areas
         plot_lines();
         tooltips2();
         }
@@ -610,7 +637,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .on("mouseleave", handleMouseleave2)
     }
 
-    // defaults
+    // defaults when viz loads up
     let selectedValue = 'lt,teq';
 
     updateLine('AAPL');
