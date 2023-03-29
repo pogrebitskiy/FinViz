@@ -52,12 +52,12 @@ d3.csv('data/revdata.csv').then((data) => {
         mibn: 'Nonredeemable Noncontrolling Interest',
         at: 'Total Assets',
         lt: 'Total Liabilities',
-        teq: 'Total Equities'
+        teq: 'Total Equity'
     };
 
     // will be used for legends
-    const vis1_keys = ['Assets', 'Liabilities', 'Equities'];
-    const vis2_keys = ['Total Assets', 'Total Liabilities', 'Total Equities'];
+    const vis1_keys = ['Assets', 'Liabilities', "Stockholders' Equity"];
+    const vis2_keys = ['Total Assets', 'Total Liabilities', "Total Stockholders' Equity"];
     const key_colors = ['blue', 'red', 'green'];
 
     // Populate dropdown with year choices
@@ -464,7 +464,7 @@ d3.csv('data/revdata.csv').then((data) => {
         {label: 'Balance Sheet', value: ['lt', 'teq']},
         {label: 'Assets', value: ['act', 'ppent', 'ivaeq', 'ivao', 'intan', 'ao']},
         {label: 'Liabilities', value: ['lct', 'txditc', 'lo', 'dltt']},
-        {label: "Stockholders' Equities", value: ['ceq', 'pstk', 'mibn']}
+        {label: "Stockholders' Equity", value: ['ceq', 'pstk', 'mibn']}
     ]
     
     // for plotting different account breakdowns
