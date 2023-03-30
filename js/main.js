@@ -52,7 +52,7 @@ d3.csv('data/revdata.csv').then((data) => {
         mibn: 'Nonredeemable Noncontrolling Interest',
         at: 'Total Assets',
         lt: 'Total Liabilities',
-        teq: 'Total Equity'
+        teq: "Total Stockholders' Equity"
     };
 
     // will be used for legends
