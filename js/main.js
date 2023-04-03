@@ -1,5 +1,5 @@
 // Init dimensions
-const FRAME_HEIGHT = 750;
+const FRAME_HEIGHT = 700;
 const FRAME_WIDTH = 750;
 const PADDING = 10;
 const MARGINS = {left: 75,
@@ -181,7 +181,7 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // y axis label
     FRAME1.append('text')
-        .attr('y', 25)
+        .attr('y', 35)
         .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
         .style('text-anchor', 'middle')
         .text('Percentage of Total Assets')
@@ -267,15 +267,6 @@ d3.csv('data/revdata.csv').then((data) => {
             .attr('class', 'axis')
             .call(d3.axisLeft(Y_SCALE).ticks(10))
             .attr('font-size', '10px');
-
-        // y axis label
-        FRAME1.append('text')
-            .attr('y', 25)
-            .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
-            .style('text-anchor', 'middle')
-            .text('Percentage of Total Assets')
-            .attr('font-size', '12px')
-            .attr('transform', 'rotate(-90)')
 
         // add x axis
         FRAME1.append('g')
@@ -468,7 +459,6 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // Frame 2: Time Series Viz
     let accountOptions = [
-        {label: 'Balance Sheet', value: ['lt', 'teq']},
         {label: 'Assets', value: ['act', 'ppent', 'ivaeq', 'ivao', 'intan', 'ao']},
         {label: 'Liabilities', value: ['lct', 'txditc', 'lo', 'dltt']},
         {label: "Stockholders' Equity", value: ['ceq', 'pstk', 'mibn']}
@@ -493,7 +483,7 @@ d3.csv('data/revdata.csv').then((data) => {
 
     // y axis label
     FRAME2.append('text')
-        .attr('y', 25)
+        .attr('y', 35)
         .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
         .style('text-anchor', 'middle')
         .text('Value in Billions of Dollars')
@@ -641,7 +631,7 @@ d3.csv('data/revdata.csv').then((data) => {
     }
 
     // defaults when viz loads up
-    let selectedValue = 'lt,teq';
+    let selectedValue = 'act,ppent,ivaeq,ivao,intan,ao';
 
     updateLine('AAPL');
     FRAME1.selectAll("rect")
