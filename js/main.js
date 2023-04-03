@@ -32,9 +32,6 @@ d3.csv('data/revdata.csv').then((data) => {
     const formatYear = d3.timeFormat("%Y");
     // Frame 1: Stacked Bar
 
-    // logging the first 10 rows, as required
-    console.log(data.slice(0,10));
-
     // will be used for mapping
     const DEFINITIONS = {
         act: 'Total Current Assets',
