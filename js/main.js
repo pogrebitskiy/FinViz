@@ -184,7 +184,7 @@ d3.csv('data/revdata.csv').then((data) => {
         .attr('y', 35)
         .attr('x', 0 - VIS_HEIGHT/2 - MARGINS.top)
         .style('text-anchor', 'middle')
-        .text('Percentage of Total Assets')
+        .text('Proportion of Total Assets')
         .attr('font-size', '12px')
         .attr('transform', 'rotate(-90)')
 
