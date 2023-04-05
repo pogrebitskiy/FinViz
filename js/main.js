@@ -268,6 +268,7 @@ d3.csv('data/revdata.csv').then((data) => {
             .call(d3.axisLeft(Y_SCALE).ticks(10))
             .attr('font-size', '10px');
 
+
         // add x axis
         FRAME1.append('g')
             .attr('transform', 'translate(' + MARGINS.left + ',' + (VIS_HEIGHT + MARGINS.top) + ')')
@@ -523,8 +524,8 @@ d3.csv('data/revdata.csv').then((data) => {
             .domain([0, Y_MAX2])
             .range([VIS_HEIGHT, 0]);
 
-        X_SCALE2 = d3.scaleBand()
-            .domain(years)
+        X_SCALE2 = d3.scaleLinear()
+            .domain([2010,2022])
             .range([0, VIS_WIDTH]);
 
         // add y axis
@@ -536,7 +537,7 @@ d3.csv('data/revdata.csv').then((data) => {
         // add x axis
         FRAME2.append('g')
             .attr('transform', 'translate(' + MARGINS.left + ',' + (VIS_HEIGHT + MARGINS.top) + ')')
-            .call(d3.axisBottom(X_SCALE2).ticks(3).tickPadding(0))
+            .call(d3.axisBottom(X_SCALE2).tickFormat(d3.format("d")))
             .selectAll('text')
             .style('text-anchor', 'end')
             .attr('font-size', '10px')
@@ -552,7 +553,7 @@ d3.csv('data/revdata.csv').then((data) => {
 
         // create an area generator
         const area = d3.area()
-            .x(d => X_SCALE2(parseInt(d.data.fyear)) + MARGINS.right + 23)
+            .x(d => X_SCALE2(parseInt(d.data.fyear))+MARGINS.right)
             .y0(d => Y_SCALE2(d[0] / 1000) + MARGINS.top)
             .y1(d => Y_SCALE2(d[1] / 1000) + MARGINS.top);
 
